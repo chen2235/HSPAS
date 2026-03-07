@@ -44,7 +44,19 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseDefaultFiles();
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        // 開發環境下禁止快取靜態檔案，確保每次都載入最新版本
+        if (app.Environment.IsDevelopment())
+        {
+            ctx.Context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+            ctx.Context.Response.Headers["Pragma"] = "no-cache";
+            ctx.Context.Response.Headers["Expires"] = "0";
+        }
+    }
+});
 app.MapControllers();
 
 // SPA fallback: 非 API 且非靜態檔的請求都回傳 index.html

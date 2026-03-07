@@ -53,7 +53,14 @@
             <div class="card-body p-0">
                 <table class="table table-sm table-striped mb-0">
                     <thead class="table-dark">
-                        <tr><th>代號</th><th>名稱</th><th>股數</th><th>現價</th><th>市值</th><th>比例</th></tr>
+                        <tr>
+                            <th class="sortable-dash" data-col="stockId" style="cursor:pointer">代號</th>
+                            <th class="sortable-dash" data-col="stockName" style="cursor:pointer">名稱</th>
+                            <th class="sortable-dash" data-col="quantity" style="cursor:pointer">股數</th>
+                            <th class="sortable-dash" data-col="lastClosePrice" style="cursor:pointer">現價</th>
+                            <th class="sortable-dash" data-col="marketValue" style="cursor:pointer">市值</th>
+                            <th class="sortable-dash" data-col="weightRatio" style="cursor:pointer">比例</th>
+                        </tr>
                     </thead>
                     <tbody id="holdingsBody"></tbody>
                 </table>
@@ -68,7 +75,15 @@
     <div class="card-body p-0">
         <table class="table table-sm table-striped mb-0">
             <thead class="table-dark">
-                <tr><th>代號</th><th>名稱</th><th>股數</th><th>現價</th><th>MA60</th><th>偏離</th><th>偏離%</th></tr>
+                <tr>
+                    <th class="sortable-alert" data-col="stockId" style="cursor:pointer">代號</th>
+                    <th class="sortable-alert" data-col="stockName" style="cursor:pointer">名稱</th>
+                    <th class="sortable-alert" data-col="currentQty" style="cursor:pointer">股數</th>
+                    <th class="sortable-alert" data-col="lastClosePrice" style="cursor:pointer">現價</th>
+                    <th class="sortable-alert" data-col="ma" style="cursor:pointer">季線（MA60）</th>
+                    <th class="sortable-alert" data-col="diff" style="cursor:pointer">偏離</th>
+                    <th class="sortable-alert" data-col="diffPercent" style="cursor:pointer">偏離%</th>
+                </tr>
             </thead>
             <tbody id="alertsBody"><tr><td colspan="7" class="text-center text-muted">載入中...</td></tr></tbody>
         </table>

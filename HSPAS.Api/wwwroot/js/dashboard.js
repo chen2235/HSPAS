@@ -2,6 +2,19 @@
 HSPAS.registerPage('dashboard', async function () {
     const holdingsBody = document.getElementById('holdingsBody');
     const alertsBody = document.getElementById('alertsBody');
+    let allHoldings = [];
+    let sortCol = 'marketValue';
+    let sortAsc = false;
+
+    // 標題列排序
+    document.querySelectorAll('.sortable-dash').forEach(th => {
+        th.addEventListener('click', () => {
+            const col = th.dataset.col;
+            if (sortCol === col) sortAsc = !sortAsc;
+            else { sortCol = col; sortAsc = true; }
+            renderHoldings();
+        });
+    });
 
     // 載入持股
     try {
@@ -20,12 +33,8 @@ HSPAS.registerPage('dashboard', async function () {
             document.getElementById('returnCard').classList.toggle('negative', ret < 0);
 
             if (data.items && data.items.length > 0) {
-                holdingsBody.innerHTML = data.items.map(i => `<tr>
-                    <td><a href="#/stock?id=${i.stockId}">${i.stockId}</a></td>
-                    <td>${i.stockName}</td><td>${fmtInt(i.quantity)}</td>
-                    <td>${fmtPrice(i.lastClosePrice)}</td><td>${fmtMoney(i.marketValue)}</td>
-                    <td>${(i.weightRatio * 100).toFixed(1)}%</td>
-                </tr>`).join('');
+                allHoldings = data.items;
+                renderHoldings();
 
                 // 圓餅圖
                 new Chart(document.getElementById('holdingsChart'), {
@@ -46,22 +55,64 @@ HSPAS.registerPage('dashboard', async function () {
         holdingsBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">載入失敗</td></tr>';
     }
 
+    function renderHoldings() {
+        const sorted = [...allHoldings].sort((a, b) => {
+            let va = a[sortCol], vb = b[sortCol];
+            if (va == null) va = '';
+            if (vb == null) vb = '';
+            if (typeof va === 'string') return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+            return sortAsc ? va - vb : vb - va;
+        });
+        holdingsBody.innerHTML = sorted.map(i => `<tr>
+            <td><a href="#/stock?id=${i.stockId}">${i.stockId}</a></td>
+            <td>${i.stockName}</td><td>${fmtInt(i.quantity)}</td>
+            <td>${fmtPrice(i.lastClosePrice)}</td><td>${fmtMoney(i.marketValue)}</td>
+            <td>${(i.weightRatio * 100).toFixed(1)}%</td>
+        </tr>`).join('');
+    }
+
+    // 風險警示排序
+    let allAlerts = [];
+    let alertSortCol = 'diff';
+    let alertSortAsc = false;
+
+    document.querySelectorAll('.sortable-alert').forEach(th => {
+        th.addEventListener('click', () => {
+            const col = th.dataset.col;
+            if (alertSortCol === col) alertSortAsc = !alertSortAsc;
+            else { alertSortCol = col; alertSortAsc = true; }
+            renderAlerts();
+        });
+    });
+
+    function renderAlerts() {
+        if (allAlerts.length === 0) {
+            alertsBody.innerHTML = '<tr><td colspan="7" class="text-center text-success">所有持股皆在季線上方</td></tr>';
+            return;
+        }
+        const sorted = [...allAlerts].sort((a, b) => {
+            let va = a[alertSortCol], vb = b[alertSortCol];
+            if (va == null) va = '';
+            if (vb == null) vb = '';
+            if (typeof va === 'string') return alertSortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+            return alertSortAsc ? va - vb : vb - va;
+        });
+        alertsBody.innerHTML = sorted.map(i => `<tr class="table-danger">
+            <td><a href="#/stock?id=${i.stockId}">${i.stockId}</a></td>
+            <td>${i.stockName}</td><td>${fmtInt(i.currentQty)}</td>
+            <td>${fmtPrice(i.lastClosePrice)}</td><td>${fmtPrice(i.ma)}</td>
+            <td class="price-down">${fmtPrice(i.diff)}</td>
+            <td class="price-down">${(i.diffPercent * 100).toFixed(2)}%</td>
+        </tr>`).join('');
+    }
+
     // 載入風險警示
     try {
         const resp = await fetch('/api/alerts/below-quarterly-ma?days=60');
         if (resp.ok) {
             const data = await resp.json();
-            if (data.items && data.items.length > 0) {
-                alertsBody.innerHTML = data.items.map(i => `<tr class="table-danger">
-                    <td><a href="#/stock?id=${i.stockId}">${i.stockId}</a></td>
-                    <td>${i.stockName}</td><td>${fmtInt(i.currentQty)}</td>
-                    <td>${fmtPrice(i.lastClosePrice)}</td><td>${fmtPrice(i.ma)}</td>
-                    <td class="price-down">${fmtPrice(i.diff)}</td>
-                    <td class="price-down">${(i.diffPercent * 100).toFixed(2)}%</td>
-                </tr>`).join('');
-            } else {
-                alertsBody.innerHTML = '<tr><td colspan="7" class="text-center text-success">所有持股皆在季線上方</td></tr>';
-            }
+            allAlerts = (data.items && data.items.length > 0) ? data.items : [];
+            renderAlerts();
         } else {
             alertsBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">尚無資料</td></tr>';
         }

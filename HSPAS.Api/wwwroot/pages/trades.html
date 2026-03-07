@@ -1,5 +1,58 @@
 <h3>交易紀錄管理</h3>
 
+<!-- 匯入國泰證日對帳單 -->
+<div class="card mb-4">
+    <div class="card-header"><i class="bi bi-file-earmark-pdf"></i> 匯入國泰證日對帳單</div>
+    <div class="card-body">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">選擇 PDF 檔案</label>
+                <input type="file" class="form-control" id="cathayPdfFile" accept=".pdf">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">對帳單密碼</label>
+                <input type="password" class="form-control" id="cathayPdfPassword" placeholder="預設：A120683373" value="A120683373">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-info w-100" id="btnParsePdf"><i class="bi bi-search"></i> 解析對帳單</button>
+            </div>
+        </div>
+        <small class="text-muted mt-1 d-block">目前僅支援「國泰證券」格式之「日對帳單」PDF。交易明細／客戶應收付額：+ 代表賣出金額（SELL），- 代表買入金額（BUY）。</small>
+        <div id="cathayMsg" class="mt-2"></div>
+    </div>
+</div>
+
+<!-- 待確認交易明細 -->
+<div id="pendingTradesSection" style="display:none;">
+    <div class="card mb-4">
+        <div class="card-header text-primary"><i class="bi bi-list-check"></i> 待確認交易明細（<span id="pendingCount">0</span> 筆）</div>
+        <div class="card-body p-0">
+            <table class="table table-sm table-striped table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>交易日期</th>
+                        <th>股票代號</th>
+                        <th>股票名稱</th>
+                        <th>交易別</th>
+                        <th>股數</th>
+                        <th>單股成交價</th>
+                        <th>手續費</th>
+                        <th>交易稅</th>
+                        <th>客戶應收付額</th>
+                        <th>備註</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="pendingBody"></tbody>
+            </table>
+        </div>
+        <div class="card-footer text-end">
+            <button class="btn btn-secondary me-2" id="btnClearPending">清空</button>
+            <button class="btn btn-success" id="btnBatchCreate"><i class="bi bi-plus-circle"></i> 確認新增</button>
+        </div>
+    </div>
+</div>
+
 <!-- 新增交易表單 -->
 <div class="card mb-4">
     <div class="card-header">新增交易紀錄</div>

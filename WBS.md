@@ -11,6 +11,8 @@
 | 2.0 | 2026-03-07 | 依 skill.md 更新版重新對齊：新增前端主框架(ch3)、章節重編號、金額精度 decimal(19,4)、EtfInfo.Category NOT NULL |
 | 3.0 | 2026-03-07 | 全功能實作完成：共用 Layout、所有 API、所有前端頁面、技術指標、儀表板、選股建議、風險警示、start/stop 腳本 |
 | 4.0 | 2026-03-07 | 全項目完成：DB 初始化腳本、DCA 同步 TradeRecord、技術指標圖表、買入分佈 API+前端、未實現損益顯示、單元/整合測試、start/stop 腳本修正 |
+| 5.0 | 2026-03-07 | UX 優化：所有頁面 alert() 改為 inline 訊息、中文化、排序功能、自動載入、表單預設值、DCA/交易紀錄編輯功能、損益顏色標示、靜態檔案 no-cache、run.bat/stop.bat |
+| 6.0 | 2026-03-07 | 新增「上傳國泰證日對帳單」功能：PDF 解析 API、批次新增 API、前端匯入介面與待確認明細表格 |
 
 ---
 
@@ -88,6 +90,7 @@
 - [x] 6.4 行情列表搜尋功能（代號/名稱）
 - [x] 6.5 行情列表排序功能（漲跌、成交量等）
 - [x] 6.6 表格中點選股票代號導向 `/stock/{stockId}`
+- [x] 6.7 進入頁面自動載入當日行情，預設成交股數由大到小排序
 
 ---
 
@@ -106,11 +109,41 @@
 ## 8. 個人買賣股票紀錄功能（skill ch4）
 
 - [x] 8.1 `POST /api/trades` — 建立交易紀錄 API
-- [x] 8.2 `GET /api/trades/{stockId}?from=&to=` — 查詢交易紀錄 API
-- [x] 8.3 實作 NetAmount 自動計算邏輯（買進/賣出/股利）
-- [x] 8.4 實作個股持有與損益計算服務（CurrentQty、TotalBuyAmount、AvgCost）
-- [x] 8.5 `GET /api/portfolio/summary` — 透過 dashboard/holdings 與 portfolio/unrealized-summary 實作
-- [x] 8.6 建立前端 `/trades` 交易紀錄管理頁面（新增 + 查詢）
+- [x] 8.2 `GET /api/trades` — 查詢交易紀錄 API（支援 stockId、from、to 篩選，留空查全部）
+- [x] 8.3 `PUT /api/trades/{id}` — 修改交易紀錄 API（自動重算 NetAmount）
+- [x] 8.4 `DELETE /api/trades/{id}` — 刪除交易紀錄 API
+- [x] 8.5 `GET /api/trades/stock-name/{stockId}` — 股票名稱查詢 API（TradeRecords → DailyStockPrices → EtfInfos 三層查找）
+- [x] 8.6 實作 NetAmount 自動計算邏輯（買進/賣出/股利）
+- [x] 8.7 實作個股持有與損益計算服務（CurrentQty、TotalBuyAmount、AvgCost）
+- [x] 8.8 建立前端 `/trades` 交易紀錄管理頁面
+  - [x] 8.8.1 新增表單：交易日期預設系統日、股票代號自動帶出名稱（debounce 400ms）、股數預設 1、欄位名稱「單股成交價」
+  - [x] 8.8.2 新增完成後重置表單（交易日期恢復系統日）並自動更新查詢結果
+  - [x] 8.8.3 進入頁面自動查詢所有交易紀錄
+  - [x] 8.8.4 查詢結果標題列可排序（編號、日期、代號、名稱、動作、股數、價格、淨額），預設日期降序
+  - [x] 8.8.5 查詢結果每列「修改」按鈕，開啟 Bootstrap Modal 編輯/刪除
+  - [x] 8.8.6 所有操作（新增/修改/刪除）顯示 inline 訊息（showMsg）
+
+### 8B. 上傳國泰證日對帳單並自動帶入交易明細（skill ch4.5）
+
+- [x] 8.9 後端 PDF 解析服務（使用 UglyToad.PdfPig 套件，基於 Word 座標定位解析）
+  - [x] 8.9.1 安裝 PDF 解析套件（UglyToad.PdfPig 1.7.0-custom-5）
+  - [x] 8.9.2 實作國泰證日對帳單 PDF 解密與文字解析邏輯（CathayStatementParserService）
+  - [x] 8.9.3 解析交易明細欄位對應：商品名稱→StockName、成交股數→Quantity、單價→Price、手續費→Fee、交易稅→Tax、客戶應收付額→NetAmount/Action
+  - [x] 8.9.4 交易方向判斷：客戶應收付額「+」→SELL（NetAmount 正值）、「-」→BUY（NetAmount 負值）
+  - [x] 8.9.5 基礎驗證（TradeDate 合法日期、StockId 非空、Quantity/Price > 0、NetAmount 方向一致）
+- [x] 8.10 `POST /api/trades/cathay-daily-statement/parse` — 上傳與解析國泰證日對帳單 API
+  - [x] 8.10.1 接收 multipart/form-data（file: PDF, password: string）
+  - [x] 8.10.2 回傳解析後交易明細陣列（tradeDate, stockId, stockName, action, quantity, price, fee, tax, otherCost, netAmount, customerReceivablePayableRaw）
+  - [x] 8.10.3 密碼錯誤或格式不符回傳適當錯誤訊息
+- [x] 8.11 `POST /api/trades/batch` — 批次新增多筆交易紀錄 API
+  - [x] 8.11.1 接收 items 陣列，逐筆建立 TradeRecord
+  - [x] 8.11.2 回傳成功筆數與失敗明細
+- [x] 8.12 前端 `/trades` 匯入國泰證日對帳單區塊
+  - [x] 8.12.1 檔案選擇按鈕（僅接受 .pdf）、密碼輸入框（預設值 A120683373）、「解析對帳單」按鈕
+  - [x] 8.12.2 呼叫後端解析 API，顯示「待確認交易明細表格」（交易日期、股票代號、股票名稱、交易別、股數、單價、手續費、交易稅、客戶應收付額）
+  - [x] 8.12.3 每列可單筆移除（排除不匯入的明細）、可編輯股票代號與備註欄位
+  - [x] 8.12.4 備註文字說明：「客戶應收付額：+ 代表賣出（SELL），- 代表買入（BUY）」
+  - [x] 8.12.5 「確認新增」按鈕呼叫批次 API 寫入，成功後顯示訊息、清空暫存表格、自動更新查詢結果
 
 ---
 
@@ -124,6 +157,10 @@
 - [x] 9.6 實作定期定額績效計算（累積投入、累積股數、平均成本、目前市值）
 - [x] 9.7 DCA 執行成功時同步寫入 TradeRecord（BUY 紀錄）
 - [x] 9.8 建立前端 `/dca` 定期定額管理頁面
+  - [x] 9.8.1 股票代號自動帶出名稱，股票名稱自動帶入計畫名稱（「存XX」）
+  - [x] 9.8.2 開始日期預設系統日、金額預設 2000
+  - [x] 9.8.3 約定清單每列可修改（Bootstrap Modal：計畫名稱、金額、狀態啟用/停用、結束日期、備註）
+  - [x] 9.8.4 週期金額分析列表：依 cycleType + cycleDay 分組統計（如「每月/第6日」），顯示啟用約定數與每期總金額
 
 ---
 
@@ -158,7 +195,7 @@
 - [x] 12.4 前端 `/dashboard` 頁面框架
 - [x] 12.5 前端總市值、總成本、整體未實現損益摘要區
 - [x] 12.6 前端持股比例圓餅圖 / donut chart
-- [x] 12.7 前端持股明細表格（股數、市值、比例）
+- [x] 12.7 前端持股明細表格（股數、市值、比例），標題列可排序，預設市值降序
 
 ### 12B. 單一持股買入金額與比例
 
@@ -175,6 +212,10 @@
 - [x] 13.2 `GET /api/portfolio/stock/{stockId}/unrealized` — 單檔未實現損益 API
 - [x] 13.3 `GET /api/portfolio/unrealized-summary` — 整體組合未實現損益摘要 API
 - [x] 13.4 前端 `/pnl` 損益與成本查詢頁面
+  - [x] 13.4.1 進入時自動載入所有持股損益明細
+  - [x] 13.4.2 標題列可排序（代號、名稱、持股、平均成本、現價、總成本、市值、未實現損益、報酬率），預設報酬率降序
+  - [x] 13.4.3 報酬率整列顏色：≤0% 紅色、≥70% 藍色
+  - [x] 13.4.4 每檔持股「詳細」按鈕以 target="_blank" 另開新視窗至個股走勢頁
 - [x] 13.5 前端 `/stock/{stockId}` 與 `/etf/{etfId}` 顯示平均成本、現價、未實現損益
 - [x] 13.6 前端 `/dashboard` 顯示整體組合未實現損益摘要
 
@@ -190,6 +231,7 @@
 - [x] 14.6 前端長期投資候選區塊（代號、名稱、理由）
 - [x] 14.7 前端短期/波段候選區塊
 - [x] 14.8 點選標的跳轉至 `/stock/{stockId}` 或 `/etf/{etfId}`
+- [x] 14.9 進入頁面自動載入建議結果
 
 ---
 
@@ -197,8 +239,10 @@
 
 - [x] 15.1 實作持股跌破季線檢查服務（取近 60 日收盤價 → 計算 MA60 → 比較現價）
 - [x] 15.2 `GET /api/alerts/below-quarterly-ma?days=` — 持股跌破季線 API
-- [x] 15.3 前端 `/dashboard` 加入「風險警示」區塊（列出跌破季線標的、按跌破幅度排序）
-- [x] 15.4 前端 `/alerts` 獨立頁面顯示跌破季線清單
+- [x] 15.3 前端 `/dashboard` 季線風險警示區塊
+  - [x] 15.3.1 標題列可排序（代號、名稱、股數、現價、季線（MA60）、偏離、偏離%），預設偏離降序
+  - [x] 15.3.2 欄位名稱「季線（MA60）」
+- [x] 15.4 前端 `/alerts` 獨立頁面，進入時自動載入檢查結果
 
 ---
 
@@ -206,6 +250,15 @@
 
 - [x] 16.1 撰寫後端單元測試（Service 層計算邏輯）— TechnicalIndicatorServiceTests、PortfolioServiceTests
 - [x] 16.2 撰寫 API 整合測試 — TradesControllerTests、DcaControllerTests（含 DCA→TradeRecord 同步驗證）
-- [x] 16.3 前端功能驗證（各頁面完整流程）— start.ps1 啟動後 API 端點全數回應 200
+- [x] 16.3 前端功能驗證（各頁面完整流程）— 啟動後 API 端點全數回應 200
 - [x] 16.4 效能調校（DB 查詢最佳化、索引檢視）— EF Core 索引已在 Migration 中建立
-- [x] 16.5 部署設定：start.ps1 / stop.ps1 啟停腳本
+- [x] 16.5 部署設定：run.bat（前景啟動）/ stop.bat 啟停腳本
+
+---
+
+## 17. UX 優化與前端強化
+
+- [x] 17.1 所有頁面 `alert()` 替換為 inline `showMsg()` 訊息（Bootstrap dismissible alerts，含圖示、時間戳、自動捲動、成功訊息自動消失）
+- [x] 17.2 全站中文化（所有標籤、按鈕、狀態 badge、圖表標籤、貨幣格式 NT$）
+- [x] 17.3 開發環境靜態檔案 no-cache（Program.cs StaticFileOptions）避免瀏覽器快取舊 JS/CSS
+- [x] 17.4 GitHub 版控初始化（.gitignore、first commit、push to origin/main）

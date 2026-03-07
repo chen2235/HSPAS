@@ -123,6 +123,9 @@ HSPAS.registerPage('trades', function () {
     // ===== 查詢交易紀錄 =====
     document.getElementById('btnQueryTrades').addEventListener('click', doQuery);
 
+    // 進入時自動查詢
+    doQuery();
+
     async function doQuery() {
         const sid = document.getElementById('queryStockId').value.trim();
         const from = document.getElementById('queryFrom').value;
@@ -279,6 +282,162 @@ HSPAS.registerPage('trades', function () {
         } catch (e) {
             editModal.hide();
             showMsg('danger', `刪除請求失敗：${e.message}`);
+        }
+    });
+
+    // ===== 匯入國泰證日對帳單 =====
+    let pendingTrades = [];
+    const cathayMsg = document.getElementById('cathayMsg');
+
+    function showCathayMsg(type, text) {
+        const icon = type === 'success' ? '✔' : type === 'danger' ? '✘' : '⚠';
+        const now = new Date().toLocaleTimeString();
+        cathayMsg.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            <strong>${icon}</strong> ${text} <small class="text-muted ms-2">${now}</small>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>`;
+        if (type === 'success') setTimeout(() => { cathayMsg.querySelector('.alert')?.classList.remove('show'); }, 5000);
+    }
+
+    document.getElementById('btnParsePdf').addEventListener('click', async () => {
+        const fileInput = document.getElementById('cathayPdfFile');
+        const password = document.getElementById('cathayPdfPassword').value;
+        if (!fileInput.files || fileInput.files.length === 0) {
+            showCathayMsg('warning', '請選擇 PDF 檔案。');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        formData.append('password', password || 'A120683373');
+
+        showCathayMsg('info', '解析中，請稍候...');
+
+        try {
+            const resp = await fetch('/api/trades/cathay-daily-statement/parse', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                pendingTrades = data.map((item, idx) => ({ ...item, _idx: idx }));
+                renderPending();
+                showCathayMsg('success', `成功解析 ${data.length} 筆交易明細，請確認後按「確認新增」。`);
+            } else {
+                showCathayMsg('danger', `解析失敗：${data.error || JSON.stringify(data)}`);
+            }
+        } catch (e) {
+            showCathayMsg('danger', `解析請求失敗：${e.message}`);
+        }
+    });
+
+    function renderPending() {
+        const section = document.getElementById('pendingTradesSection');
+        const body = document.getElementById('pendingBody');
+        document.getElementById('pendingCount').textContent = pendingTrades.length;
+
+        if (pendingTrades.length === 0) {
+            section.style.display = 'none';
+            return;
+        }
+        section.style.display = 'block';
+
+        body.innerHTML = pendingTrades.map((i, rowIdx) => {
+            const cls = i.action === 'BUY' ? 'price-up' : i.action === 'SELL' ? 'price-down' : '';
+            const actionText = i.action === 'BUY' ? '買進' : i.action === 'SELL' ? '賣出' : i.action;
+            return `<tr>
+                <td>${i.tradeDate}</td>
+                <td><input type="text" class="form-control form-control-sm pending-stockid" data-idx="${rowIdx}" value="${i.stockId}" style="width:80px"></td>
+                <td>${i.stockName}</td>
+                <td class="${cls}">${actionText}</td>
+                <td>${fmtInt(i.quantity)}</td>
+                <td>${fmt(i.price)}</td>
+                <td>${fmt(i.fee)}</td>
+                <td>${fmt(i.tax)}</td>
+                <td class="fw-bold">${i.customerReceivablePayableRaw}</td>
+                <td><input type="text" class="form-control form-control-sm pending-note" data-idx="${rowIdx}" value="國泰日對帳單匯入" style="width:120px"></td>
+                <td><button class="btn btn-sm btn-outline-danger btn-remove-pending" data-idx="${rowIdx}">移除</button></td>
+            </tr>`;
+        }).join('');
+
+        // Bind stockId edit
+        document.querySelectorAll('.pending-stockid').forEach(input => {
+            input.addEventListener('change', () => {
+                const idx = parseInt(input.dataset.idx);
+                pendingTrades[idx].stockId = input.value.trim();
+            });
+        });
+
+        // Bind note edit
+        document.querySelectorAll('.pending-note').forEach(input => {
+            input.addEventListener('change', () => {
+                const idx = parseInt(input.dataset.idx);
+                pendingTrades[idx]._note = input.value.trim();
+            });
+        });
+
+        // Bind remove buttons
+        document.querySelectorAll('.btn-remove-pending').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.idx);
+                pendingTrades.splice(idx, 1);
+                renderPending();
+            });
+        });
+    }
+
+    document.getElementById('btnClearPending').addEventListener('click', () => {
+        pendingTrades = [];
+        renderPending();
+    });
+
+    document.getElementById('btnBatchCreate').addEventListener('click', async () => {
+        if (pendingTrades.length === 0) {
+            showCathayMsg('warning', '沒有待新增的交易明細。');
+            return;
+        }
+
+        // Validate stockId
+        const missing = pendingTrades.filter(i => !i.stockId);
+        if (missing.length > 0) {
+            showCathayMsg('warning', `有 ${missing.length} 筆交易明細缺少股票代號，請補填後再新增。`);
+            return;
+        }
+
+        const items = pendingTrades.map(i => ({
+            tradeDate: i.tradeDate,
+            stockId: i.stockId,
+            stockName: i.stockName,
+            action: i.action,
+            quantity: i.quantity,
+            price: i.price,
+            fee: i.fee,
+            tax: i.tax,
+            otherCost: i.otherCost || 0,
+            note: i._note || '國泰日對帳單匯入'
+        }));
+
+        try {
+            const resp = await fetch('/api/trades/batch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ items })
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                const msg = data.errorCount > 0
+                    ? `成功新增 ${data.successCount} 筆，失敗 ${data.errorCount} 筆。`
+                    : `已成功新增 ${data.successCount} 筆交易紀錄。`;
+                showCathayMsg('success', msg);
+                pendingTrades = [];
+                renderPending();
+                document.getElementById('cathayPdfFile').value = '';
+                doQuery();
+            } else {
+                showCathayMsg('danger', `新增失敗：${data.error || JSON.stringify(data)}`);
+            }
+        } catch (e) {
+            showCathayMsg('danger', `新增請求失敗：${e.message}`);
         }
     });
 

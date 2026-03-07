@@ -1,5 +1,6 @@
 using HSPAS.Api.Entities;
 using HSPAS.Api.Infrastructure;
+using HSPAS.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -168,5 +169,156 @@ public class TradesController : ControllerBase
             return Ok(new { stockName = fromEtf });
 
         return Ok(new { stockName = "" });
+    }
+
+    /// <summary>上傳與解析國泰證日對帳單 PDF</summary>
+    [HttpPost("cathay-daily-statement/parse")]
+    public async Task<IActionResult> ParseCathayStatement(
+        IFormFile file,
+        [FromForm] string? password,
+        CancellationToken ct)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(new { error = "請選擇 PDF 檔案。" });
+
+        var pwd = string.IsNullOrWhiteSpace(password) ? "A120683373" : password;
+
+        using var stream = file.OpenReadStream();
+        var parser = new CathayStatementParserService();
+        var result = parser.Parse(stream, pwd);
+
+        if (!result.Success)
+            return BadRequest(new { error = result.Error });
+
+        // Resolve stockId from stockName via DB
+        var resolvedItems = new List<object>();
+        foreach (var item in result.Items)
+        {
+            var stockId = await ResolveStockId(item.StockName, ct);
+            resolvedItems.Add(new
+            {
+                item.TradeDate,
+                stockId,
+                item.StockName,
+                item.Action,
+                item.Quantity,
+                item.Price,
+                item.Fee,
+                item.Tax,
+                item.OtherCost,
+                item.NetAmount,
+                item.CustomerReceivablePayableRaw
+            });
+        }
+
+        return Ok(resolvedItems);
+    }
+
+    private async Task<string> ResolveStockId(string stockName, CancellationToken ct)
+    {
+        // Look up stockId by stockName in DailyStockPrices
+        var fromPrice = await _db.DailyStockPrices
+            .Where(d => d.StockName == stockName)
+            .OrderByDescending(d => d.TradeDate)
+            .Select(d => d.StockId)
+            .FirstOrDefaultAsync(ct);
+        if (!string.IsNullOrEmpty(fromPrice)) return fromPrice;
+
+        // Look up in TradeRecords
+        var fromTrade = await _db.TradeRecords
+            .Where(t => t.StockName == stockName)
+            .Select(t => t.StockId)
+            .FirstOrDefaultAsync(ct);
+        if (!string.IsNullOrEmpty(fromTrade)) return fromTrade;
+
+        // Look up in EtfInfos
+        var fromEtf = await _db.EtfInfos
+            .Where(e => e.EtfName == stockName)
+            .Select(e => e.EtfId)
+            .FirstOrDefaultAsync(ct);
+        if (!string.IsNullOrEmpty(fromEtf)) return fromEtf;
+
+        return "";
+    }
+
+    public class BatchTradeItem
+    {
+        public string TradeDate { get; set; } = "";
+        public string StockId { get; set; } = "";
+        public string StockName { get; set; } = "";
+        public string Action { get; set; } = "";
+        public int Quantity { get; set; }
+        public decimal Price { get; set; }
+        public decimal Fee { get; set; }
+        public decimal Tax { get; set; }
+        public decimal? OtherCost { get; set; }
+        public string? Note { get; set; }
+    }
+
+    public class BatchCreateRequest
+    {
+        public List<BatchTradeItem> Items { get; set; } = new();
+    }
+
+    /// <summary>批次新增多筆交易紀錄</summary>
+    [HttpPost("batch")]
+    public async Task<IActionResult> BatchCreate([FromBody] BatchCreateRequest req, CancellationToken ct)
+    {
+        if (req.Items == null || req.Items.Count == 0)
+            return BadRequest(new { error = "交易明細不可為空。" });
+
+        var successCount = 0;
+        var errors = new List<object>();
+
+        foreach (var (item, idx) in req.Items.Select((v, i) => (v, i)))
+        {
+            if (!DateTime.TryParse(item.TradeDate, out var td))
+            {
+                errors.Add(new { index = idx, error = $"交易日期格式錯誤：{item.TradeDate}" });
+                continue;
+            }
+            if (string.IsNullOrWhiteSpace(item.StockId))
+            {
+                errors.Add(new { index = idx, error = "股票代號不可為空" });
+                continue;
+            }
+            if (item.Quantity <= 0)
+            {
+                errors.Add(new { index = idx, error = "股數必須大於 0" });
+                continue;
+            }
+
+            var other = item.OtherCost ?? 0m;
+            decimal netAmount = item.Action.ToUpper() switch
+            {
+                "BUY" => -(item.Price * item.Quantity + item.Fee + item.Tax + other),
+                "SELL" => +(item.Price * item.Quantity - item.Fee - item.Tax - other),
+                "DIVIDEND" => +(item.Price * item.Quantity),
+                _ => 0m
+            };
+
+            var entity = new TradeRecord
+            {
+                TradeDate = td,
+                StockId = item.StockId,
+                StockName = item.StockName,
+                Action = item.Action.ToUpper(),
+                Quantity = item.Quantity,
+                Price = item.Price,
+                Fee = item.Fee,
+                Tax = item.Tax,
+                OtherCost = item.OtherCost,
+                NetAmount = netAmount,
+                Note = item.Note
+            };
+
+            _db.TradeRecords.Add(entity);
+            successCount++;
+        }
+
+        if (successCount > 0)
+            await _db.SaveChangesAsync(ct);
+
+        return Ok(new { successCount, errorCount = errors.Count, errors });
     }
 }
