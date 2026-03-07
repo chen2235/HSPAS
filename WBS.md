@@ -262,3 +262,111 @@
 - [x] 17.2 全站中文化（所有標籤、按鈕、狀態 badge、圖表標籤、貨幣格式 NT$）
 - [x] 17.3 開發環境靜態檔案 no-cache（Program.cs StaticFileOptions）避免瀏覽器快取舊 JS/CSS
 - [x] 17.4 GitHub 版控初始化（.gitignore、first commit、push to origin/main）
+
+---
+
+## 18. IIS 部署指引
+
+### 18.1 發佈指令
+
+```
+cd HSPAS.Api
+dotnet publish -c Release
+```
+D:\0.TradeVan\2235Stock-trading\HSPAS.Api\bin\Release\net9.0\publish
+發佈輸出目錄：`HSPAS.Api\bin\Release\net9.0\publish\`
+
+### 18.2 需複製至 IIS 網站目錄的檔案
+
+將以下 `publish\` 目錄下的**所有檔案與資料夾**完整複製至 IIS 網站根目錄（例如 `C:\inetpub\wwwroot\HSPAS\`）：
+
+```
+publish\
+├── appsettings.json                          ← 連線字串等設定（部署前請修改）
+├── appsettings.Development.json              ← 開發環境設定（正式環境可移除）
+├── web.config                                ← IIS 必要設定檔（ASP.NET Core Module）
+├── HSPAS.Api.exe                             ← 應用程式主執行檔
+├── HSPAS.Api.dll                             ← 應用程式主程式庫
+├── HSPAS.Api.deps.json                       ← 相依套件描述
+├── HSPAS.Api.runtimeconfig.json              ← 執行階段設定
+├── HSPAS.Api.staticwebassets.endpoints.json   ← 靜態資源端點描述
+├── HSPAS.Api.pdb                             ← 偵錯符號檔（正式環境可選擇不複製）
+│
+├── *.dll（根目錄下所有 DLL）                   ← 相依套件（共 47 個 DLL）
+│   ├── Azure.Core.dll
+│   ├── Azure.Identity.dll
+│   ├── Microsoft.AspNetCore.OpenApi.dll
+│   ├── Microsoft.Data.SqlClient.dll
+│   ├── Microsoft.EntityFrameworkCore.dll
+│   ├── Microsoft.EntityFrameworkCore.Relational.dll
+│   ├── Microsoft.EntityFrameworkCore.SqlServer.dll
+│   ├── Microsoft.EntityFrameworkCore.Abstractions.dll
+│   ├── Microsoft.Extensions.*.dll（共 8 個）
+│   ├── Microsoft.Identity.Client.dll
+│   ├── Microsoft.Identity.Client.Extensions.Msal.dll
+│   ├── Microsoft.IdentityModel.*.dll（共 6 個）
+│   ├── Microsoft.OpenApi.dll
+│   ├── Microsoft.SqlServer.Server.dll
+│   ├── Microsoft.Win32.SystemEvents.dll
+│   ├── Microsoft.Bcl.AsyncInterfaces.dll
+│   ├── System.ClientModel.dll
+│   ├── System.Configuration.ConfigurationManager.dll
+│   ├── System.Drawing.Common.dll
+│   ├── System.IdentityModel.Tokens.Jwt.dll
+│   ├── System.Memory.Data.dll
+│   ├── System.Runtime.Caching.dll
+│   ├── System.Security.Cryptography.ProtectedData.dll
+│   ├── System.Security.Permissions.dll
+│   ├── System.Windows.Extensions.dll
+│   ├── UglyToad.PdfPig.dll
+│   ├── UglyToad.PdfPig.Core.dll
+│   ├── UglyToad.PdfPig.Fonts.dll
+│   ├── UglyToad.PdfPig.Tokenization.dll
+│   └── UglyToad.PdfPig.Tokens.dll
+│
+├── runtimes\                                  ← 平台相依原生程式庫（整個資料夾複製）
+│   ├── win\lib\net6.0\                       ← Windows 平台 DLL
+│   ├── win-x64\native\                       ← SQL Server SNI 原生元件
+│   ├── win-x86\native\
+│   ├── win-arm\native\
+│   ├── win-arm64\native\
+│   └── unix\lib\net6.0\                      ← Linux 平台 DLL（Windows IIS 可不複製）
+│
+└── wwwroot\                                   ← 前端靜態檔案（整個資料夾複製）
+    ├── index.html                            ← SPA 主頁
+    ├── css\site.css                          ← 自訂樣式
+    ├── js\                                   ← JavaScript 模組
+    │   ├── router.js
+    │   ├── dashboard.js
+    │   ├── calendar.js
+    │   ├── stock.js
+    │   ├── etf.js
+    │   ├── trades.js
+    │   ├── dca.js
+    │   ├── pnl.js
+    │   ├── recommendations.js
+    │   ├── alerts.js
+    │   ├── backfill.js
+    │   └── settings.js
+    └── pages\                                ← HTML 頁面片段
+        ├── dashboard.html
+        ├── calendar.html
+        ├── stock.html
+        ├── etf.html
+        ├── trades.html
+        ├── dca.html
+        ├── pnl.html
+        ├── recommendations.html
+        ├── alerts.html
+        ├── backfill.html
+        └── settings.html
+```
+
+> **簡易做法**：直接將 `publish\` 資料夾內的所有內容完整複製到 IIS 網站目錄即可。
+
+### 18.3 IIS 設定注意事項
+
+1. **安裝 ASP.NET Core Hosting Bundle**（.NET 9.0 Runtime）
+2. **應用程式集區**：設定為「No Managed Code」（無受控程式碼）
+3. **appsettings.json**：部署前修改 `ConnectionStrings:DefaultConnection` 為正式環境 DB 連線
+4. **web.config**：publish 時已自動產生，包含 ASP.NET Core Module 設定，無需手動修改
