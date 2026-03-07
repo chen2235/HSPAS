@@ -1,0 +1,120 @@
+<h3>個股歷史走勢</h3>
+
+<div class="row mb-3">
+    <div class="col-md-3">
+        <label class="form-label">股票代號</label>
+        <input type="text" class="form-control" id="stockIdInput" placeholder="例如 2330">
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">起始日期</label>
+        <input type="date" class="form-control" id="fromDate">
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">結束日期</label>
+        <input type="date" class="form-control" id="toDate">
+    </div>
+    <div class="col-md-3 d-flex align-items-end">
+        <button class="btn btn-primary" id="btnQuery">查詢</button>
+    </div>
+</div>
+
+<!-- 未實現損益摘要 (13.5) -->
+<div id="unrealizedSection" style="display:none;" class="mb-3">
+    <div class="row">
+        <div class="col-md-2">
+            <div class="card summary-card"><div class="card-body">
+                <div class="text-muted small">持有股數</div>
+                <div class="fw-bold" id="urQty">-</div>
+            </div></div>
+        </div>
+        <div class="col-md-2">
+            <div class="card summary-card"><div class="card-body">
+                <div class="text-muted small">平均成本</div>
+                <div class="fw-bold" id="urAvgCost">-</div>
+            </div></div>
+        </div>
+        <div class="col-md-2">
+            <div class="card summary-card"><div class="card-body">
+                <div class="text-muted small">現價</div>
+                <div class="fw-bold" id="urLastClose">-</div>
+            </div></div>
+        </div>
+        <div class="col-md-2">
+            <div class="card summary-card"><div class="card-body">
+                <div class="text-muted small">市值</div>
+                <div class="fw-bold" id="urMarketValue">-</div>
+            </div></div>
+        </div>
+        <div class="col-md-2">
+            <div class="card summary-card" id="urPnlCard"><div class="card-body">
+                <div class="text-muted small">未實現損益</div>
+                <div class="fw-bold" id="urPnL">-</div>
+            </div></div>
+        </div>
+        <div class="col-md-2">
+            <div class="card summary-card" id="urReturnCard"><div class="card-body">
+                <div class="text-muted small">報酬率</div>
+                <div class="fw-bold" id="urReturn">-</div>
+            </div></div>
+        </div>
+    </div>
+</div>
+
+<!-- 股價走勢圖 + 技術指標 (11.5) -->
+<div id="chartSection" style="display:none;">
+    <h5 id="stockTitle"></h5>
+    <canvas id="priceChart" height="100"></canvas>
+    <div class="mt-2">
+        <h6>相對強弱指標 RSI（14日）</h6>
+        <canvas id="rsiChart" height="50"></canvas>
+    </div>
+</div>
+
+<!-- 買入組成分佈 (12.10, 12.11) -->
+<div id="buyDistSection" style="display:none;" class="mt-4">
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header">買入金額組成</div>
+                <div class="card-body">
+                    <canvas id="buyDistChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header">買入紀錄明細（<span id="buyDistCount">0</span> 筆，合計 <span id="buyDistTotal">NT$0</span>）</div>
+                <div class="card-body p-0">
+                    <table class="table table-sm table-striped mb-0">
+                        <thead class="table-dark">
+                            <tr><th>來源</th><th>日期</th><th>股數</th><th>價格</th><th>金額</th><th>比例</th></tr>
+                        </thead>
+                        <tbody id="buyDistBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="historySection" style="display:none;" class="mt-4">
+    <h5>歷史明細（<span id="historyCount"></span> 筆）</h5>
+    <div class="table-container">
+        <table class="table table-sm table-striped">
+            <thead class="table-dark sticky-top">
+                <tr>
+                    <th>日期</th><th>開盤</th><th>最高</th><th>最低</th>
+                    <th>收盤</th><th>漲跌</th><th>成交股數</th><th>成交筆數</th>
+                </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="stockMsg" class="mt-2"></div>
+
+<div id="loadingMsg" class="text-center" style="display:none;">
+    <div class="spinner-border text-primary"></div> 載入中...
+</div>
+<div id="noDataMsg" class="alert alert-info mt-3" style="display:none;">查無資料。</div>

@@ -1,0 +1,87 @@
+<h3>定期定額管理</h3>
+
+<div class="card mb-4">
+    <div class="card-header">新增定期定額約定</div>
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-md-2"><label class="form-label">計畫名稱</label><input type="text" class="form-control" id="dcaPlanName" placeholder="例如：存台積電"></div>
+            <div class="col-md-2"><label class="form-label">股票代號</label><input type="text" class="form-control" id="dcaStockId" placeholder="2330"></div>
+            <div class="col-md-2"><label class="form-label">股票名稱</label><input type="text" class="form-control" id="dcaStockName" placeholder="自動帶出" readonly><small class="text-muted" id="dcaStockNameHint"></small></div>
+            <div class="col-md-2"><label class="form-label">開始日期</label><input type="date" class="form-control" id="dcaStartDate"></div>
+            <div class="col-md-1"><label class="form-label">週期</label><select class="form-select" id="dcaCycleType"><option value="MONTHLY">每月</option><option value="WEEKLY">每週</option></select></div>
+            <div class="col-md-1"><label class="form-label">日/星期</label><input type="number" class="form-control" id="dcaCycleDay" value="6"></div>
+            <div class="col-md-1"><label class="form-label">金額</label><input type="number" class="form-control" id="dcaAmount" value="2000"></div>
+            <div class="col-md-1 d-flex align-items-end"><button class="btn btn-success w-100" id="btnCreateDca">新增</button></div>
+        </div>
+    </div>
+</div>
+
+<div id="dcaMsg" class="mb-3"></div>
+
+<h5>約定清單</h5>
+<table class="table table-sm table-striped">
+    <thead class="table-dark">
+        <tr><th>編號</th><th>名稱</th><th>代號</th><th>週期</th><th>金額</th><th>狀態</th><th>開始日期</th><th>操作</th></tr>
+    </thead>
+    <tbody id="dcaPlansBody"><tr><td colspan="8" class="text-center text-muted">載入中...</td></tr></tbody>
+</table>
+
+<h5 class="mt-4">週期金額分析</h5>
+<table class="table table-sm table-striped">
+    <thead class="table-dark">
+        <tr><th>扣款日</th><th>啟用約定數</th><th>每期總金額</th></tr>
+    </thead>
+    <tbody id="dcaCycleSummaryBody"><tr><td colspan="3" class="text-center text-muted">載入中...</td></tr></tbody>
+</table>
+
+<!-- 編輯用 Modal -->
+<div class="modal fade" id="editDcaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">修改定期定額約定</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editDcaId">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label">計畫名稱</label>
+                        <input type="text" class="form-control" id="editDcaPlanName">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">股票</label>
+                        <input type="text" class="form-control" id="editDcaStock" readonly>
+                    </div>
+                </div>
+                <div class="row g-2 mt-2">
+                    <div class="col-4">
+                        <label class="form-label">金額</label>
+                        <input type="number" class="form-control" id="editDcaAmount">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label">狀態</label>
+                        <select class="form-select" id="editDcaIsActive">
+                            <option value="true">啟用</option>
+                            <option value="false">停用</option>
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label">結束日期</label>
+                        <input type="date" class="form-control" id="editDcaEndDate">
+                    </div>
+                </div>
+                <div class="row g-2 mt-2">
+                    <div class="col-12">
+                        <label class="form-label">備註</label>
+                        <input type="text" class="form-control" id="editDcaNote">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="btnSaveDca">儲存修改</button>
+            </div>
+        </div>
+    </div>
+</div>

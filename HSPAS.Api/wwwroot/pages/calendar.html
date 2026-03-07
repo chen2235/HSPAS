@@ -1,0 +1,57 @@
+<h3>日曆行情查詢</h3>
+
+<!-- 月份切換 -->
+<div class="d-flex align-items-center mb-3">
+    <button class="btn btn-outline-secondary btn-sm" id="btnPrevMonth">&lt; 上月</button>
+    <h5 class="mx-3 mb-0" id="currentMonthLabel"></h5>
+    <button class="btn btn-outline-secondary btn-sm" id="btnNextMonth">下月 &gt;</button>
+</div>
+
+<!-- 月曆 -->
+<div class="calendar-grid mb-4" id="calendarGrid">
+    <div class="calendar-header">日</div>
+    <div class="calendar-header">一</div>
+    <div class="calendar-header">二</div>
+    <div class="calendar-header">三</div>
+    <div class="calendar-header">四</div>
+    <div class="calendar-header">五</div>
+    <div class="calendar-header">六</div>
+</div>
+
+<!-- 選取日期的行情 -->
+<div id="priceSection" style="display:none;">
+    <h4 id="selectedDateLabel"></h4>
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <input type="text" class="form-control" id="searchInput" placeholder="搜尋代號或名稱...">
+        </div>
+        <div class="col-md-2">
+            <span id="resultCount" class="text-muted"></span>
+        </div>
+    </div>
+    <div class="table-container">
+        <table class="table table-sm table-striped table-hover">
+            <thead class="table-dark sticky-top">
+                <tr>
+                    <th class="sortable" data-col="stockId">代號</th>
+                    <th class="sortable" data-col="stockName">名稱</th>
+                    <th class="sortable" data-col="closePrice">收盤價</th>
+                    <th class="sortable" data-col="priceChange">漲跌</th>
+                    <th class="sortable" data-col="openPrice">開盤價</th>
+                    <th class="sortable" data-col="highPrice">最高</th>
+                    <th class="sortable" data-col="lowPrice">最低</th>
+                    <th class="sortable" data-col="tradeVolume">成交股數</th>
+                    <th class="sortable" data-col="transaction">成交筆數</th>
+                </tr>
+            </thead>
+            <tbody id="priceBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="noDataMsg" class="alert alert-info" style="display:none;">
+    該日期無行情資料。若為今天，系統會嘗試從台灣證券交易所即時抓取。
+</div>
+<div id="loadingMsg" class="text-center" style="display:none;">
+    <div class="spinner-border text-primary"></div> 載入中...
+</div>

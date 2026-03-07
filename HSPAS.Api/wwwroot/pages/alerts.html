@@ -1,0 +1,16 @@
+<h3>風險警示 — 跌破季線（MA60）</h3>
+<p class="text-muted">檢查目前持股中股價低於 60 日均線的標的。</p>
+
+<div class="mb-3">
+    <button class="btn btn-danger" id="btnAlertRefresh">檢查</button>
+</div>
+
+<div id="alertMsg" class="mt-2"></div>
+<div id="alertLoading" class="text-center" style="display:none;"><div class="spinner-border text-primary"></div></div>
+
+<table class="table table-sm table-striped">
+    <thead class="table-dark">
+        <tr><th>代號</th><th>名稱</th><th>持股</th><th>現價</th><th>MA60</th><th>偏離</th><th>偏離%</th></tr>
+    </thead>
+    <tbody id="alertListBody"><tr><td colspan="7" class="text-center text-muted">請點「檢查」按鈕</td></tr></tbody>
+</table>

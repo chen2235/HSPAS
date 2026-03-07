@@ -1,0 +1,63 @@
+下面這段你可以直接貼給 Claude，然後把你的 `skill.md` 檔一起上傳或貼在後面，就能開始讓它幫你生專案程式碼。
+
+***
+
+**給 Claude 用的 Prompt 範本（可自行調整）**
+
+你現在是一位資深 .NET 全端工程師與系統架構師，熟悉 ASP.NET Core 9 Web API、HTML5、Bootstrap、MSSQL，以及乾淨架構與分層設計。  
+接下來請完全依照 `skill.md` 規格，從零開始建立一個可執行的專案骨架並逐步實作功能。
+
+### 任務說明
+
+1. 我會貼上一份 `skill.md`，裡面定義了一個「台股每日行情日曆查詢系統」，包含：  
+   - ASP.NET Core 9 Web API 規格  
+   - SQL Server 資料表設計  
+   - 前端 HTML5 + Bootstrap 的頁面需求（日曆介面、報表）  
+   - 歷史回補工具（管理者用）的 API 與前端頁面規格  
+
+2. 請你根據 `skill.md`：  
+   - 設計適合的解決方案與專案結構（資料夾與命名空間）。  
+   - 實作資料庫實體／DbContext／Migration（EF Core 或你建議的 ORM）。  
+   - 實作 Web API Controller、Service、Repository，包含：  
+     - `/api/calendar/available-dates`  
+     - `/api/daily-prices/by-date`  
+     - `/api/daily-prices/{stockId}/history`  
+     - `/api/history/backfill`（歷史回補工具）  
+   - 實作前端 HTML + Bootstrap 頁面：  
+     - `/calendar`：月曆 + 當日行情列表  
+     - `/stock/{stockId}`：個股歷史走勢（可用簡單圖表）  
+     - `/admin/history-backfill`：歷史回補管理頁  
+
+3. 請特別注意：  
+   - 不要使用排程或定時工作，所有資料抓取只在使用者觸發查詢或歷史回補時進行。  
+   - 抓台股資料時需呼叫臺灣證券交易所的公開資料 API（依 `skill.md` 規格），解析 CSV/JSON 後寫入 MSSQL。  
+   - 請將與 TWSE 溝通的邏輯抽成獨立 Service / Provider，方便之後更換資料來源。  
+   - 所有程式碼請盡量採用乾淨、可維護的結構，並在關鍵類別上加簡短註解說明職責。  
+
+### 輸出要求
+
+1. **第一階段：專案結構設計與檔案清單**  
+   - 說明解決方案名稱與專案名稱。  
+   - 用樹狀列出資料夾與主要檔案（例如 Controllers、Services、Entities、Views/Pages 等）。  
+
+2. **第二階段：資料庫與 Domain**  
+   - 提供 `DailyStockPrice` 的 C# Entity、DbContext 定義與 Migration 範例。  
+   - 若有額外維度表（如 StockInfo）也一併定義。  
+
+3. **第三階段：TWSE 抓取 Service**  
+   - 實作負責呼叫 TWSE API 並解析 CSV 的 Service 介面與具體實作。  
+   - 說明如何處理數字格式、錯誤與 timeout。  
+
+4. **第四階段：Web API 實作**  
+   - 實作上述 API 的 Controller + Service。  
+   - 每個 API 附上範例 Request/Response JSON。  
+
+5. **第五階段：前端頁面（HTML + Bootstrap + JS）**  
+   - 提供 `calendar` 頁面 HTML + JS，能顯示月曆並在點日期時呼叫 `/api/daily-prices/by-date` 並呈現資料。  
+   - 提供 `admin/history-backfill` 頁面 HTML + JS，能送出回補區間、顯示結果。  
+
+
+
+請完整閱讀 skill.md 並完全依照裡面的規格實作專案，每完成一個功能就更新wbs.md內容
+
+

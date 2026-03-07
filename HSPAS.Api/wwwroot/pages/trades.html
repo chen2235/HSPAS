@@ -1,0 +1,178 @@
+<h3>交易紀錄管理</h3>
+
+<!-- 新增交易表單 -->
+<div class="card mb-4">
+    <div class="card-header">新增交易紀錄</div>
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-md-2">
+                <label class="form-label">交易日期</label>
+                <input type="date" class="form-control" id="tradeDate">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">股票代號</label>
+                <input type="text" class="form-control" id="tradeStockId" placeholder="2330">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">股票名稱</label>
+                <input type="text" class="form-control" id="tradeStockName" placeholder="自動帶出" readonly>
+                <small class="text-muted" id="stockNameHint"></small>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">動作</label>
+                <select class="form-select" id="tradeAction">
+                    <option value="BUY">買進</option>
+                    <option value="SELL">賣出</option>
+                    <option value="DIVIDEND">股利</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">股數</label>
+                <input type="number" class="form-control" id="tradeQty" value="1">
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">單股成交價</label>
+                <input type="number" class="form-control" id="tradePrice" step="0.01">
+            </div>
+        </div>
+        <div class="row g-2 mt-1">
+            <div class="col-md-2">
+                <label class="form-label">手續費</label>
+                <input type="number" class="form-control" id="tradeFee" step="0.01" value="0">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">交易稅</label>
+                <input type="number" class="form-control" id="tradeTax" step="0.01" value="0">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">其他成本</label>
+                <input type="number" class="form-control" id="tradeOther" step="0.01" value="0">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">備註</label>
+                <input type="text" class="form-control" id="tradeNote">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button class="btn btn-success w-100" id="btnCreateTrade">新增</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 查詢 -->
+<div class="card mb-4">
+    <div class="card-header">查詢交易紀錄</div>
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-md-3">
+                <input type="text" class="form-control" id="queryStockId" placeholder="股票代號（留空查全部）">
+            </div>
+            <div class="col-md-2">
+                <input type="date" class="form-control" id="queryFrom" title="起始日期">
+            </div>
+            <div class="col-md-2">
+                <input type="date" class="form-control" id="queryTo" title="結束日期">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary" id="btnQueryTrades">查詢</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="tradesResult" style="display:none;">
+    <h5>查詢結果（<span id="tradesCount"></span> 筆）</h5>
+    <div class="table-container">
+        <table class="table table-sm table-striped table-hover">
+            <thead class="table-dark sticky-top">
+                <tr>
+                    <th class="sortable-trade" data-col="id" style="cursor:pointer">編號</th>
+                    <th class="sortable-trade" data-col="tradeDate" style="cursor:pointer">日期</th>
+                    <th class="sortable-trade" data-col="stockId" style="cursor:pointer">代號</th>
+                    <th class="sortable-trade" data-col="stockName" style="cursor:pointer">名稱</th>
+                    <th class="sortable-trade" data-col="action" style="cursor:pointer">動作</th>
+                    <th class="sortable-trade" data-col="quantity" style="cursor:pointer">股數</th>
+                    <th class="sortable-trade" data-col="price" style="cursor:pointer">價格</th>
+                    <th>手續費</th><th>稅</th><th>其他</th>
+                    <th class="sortable-trade" data-col="netAmount" style="cursor:pointer">淨額</th>
+                    <th>備註</th><th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="tradesBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 編輯用 Modal -->
+<div class="modal fade" id="editTradeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">修改交易紀錄</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editId">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label">交易日期</label>
+                        <input type="date" class="form-control" id="editDate">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">動作</label>
+                        <select class="form-select" id="editAction">
+                            <option value="BUY">買進</option>
+                            <option value="SELL">賣出</option>
+                            <option value="DIVIDEND">股利</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row g-2 mt-2">
+                    <div class="col-6">
+                        <label class="form-label">代號</label>
+                        <input type="text" class="form-control" id="editStockId" readonly>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">名稱</label>
+                        <input type="text" class="form-control" id="editStockName">
+                    </div>
+                </div>
+                <div class="row g-2 mt-2">
+                    <div class="col-4">
+                        <label class="form-label">股數</label>
+                        <input type="number" class="form-control" id="editQty">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label">價格</label>
+                        <input type="number" class="form-control" id="editPrice" step="0.01">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label">手續費</label>
+                        <input type="number" class="form-control" id="editFee" step="0.01">
+                    </div>
+                </div>
+                <div class="row g-2 mt-2">
+                    <div class="col-4">
+                        <label class="form-label">交易稅</label>
+                        <input type="number" class="form-control" id="editTax" step="0.01">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label">其他成本</label>
+                        <input type="number" class="form-control" id="editOther" step="0.01">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label">備註</label>
+                        <input type="text" class="form-control" id="editNote">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger me-auto" id="btnDeleteTrade">刪除此筆</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="btnSaveTrade">儲存修改</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="tradeMsg" class="mt-2"></div>

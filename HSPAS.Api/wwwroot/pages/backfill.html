@@ -1,0 +1,33 @@
+<h3>歷史資料回補工具</h3>
+<p class="text-muted">管理者用：指定日期區間，系統會逐日從台灣證券交易所補抓缺失的行情資料。</p>
+
+<div class="row mb-3">
+    <div class="col-md-3">
+        <label class="form-label">起始日期</label>
+        <input type="date" class="form-control" id="fromDate">
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">結束日期</label>
+        <input type="date" class="form-control" id="toDate">
+    </div>
+    <div class="col-md-3 d-flex align-items-end gap-2">
+        <button class="btn btn-outline-info" id="btnDryRun">試算檢查</button>
+        <button class="btn btn-warning" id="btnBackfill">開始回補</button>
+    </div>
+</div>
+
+<div id="resultSection" style="display:none;">
+    <h5>回補結果（<span id="resultSummary"></span>）</h5>
+    <table class="table table-sm table-striped">
+        <thead class="table-dark">
+            <tr><th>日期</th><th>狀態</th><th>說明</th></tr>
+        </thead>
+        <tbody id="resultBody"></tbody>
+    </table>
+</div>
+
+<div id="backfillMsg" class="mt-2"></div>
+
+<div id="loadingMsg" class="text-center" style="display:none;">
+    <div class="spinner-border text-primary"></div> 正在向台灣證券交易所抓取資料，請稍候...
+</div>

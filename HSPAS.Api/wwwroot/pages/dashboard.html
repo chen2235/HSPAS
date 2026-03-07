@@ -1,0 +1,80 @@
+<h3>儀表板</h3>
+
+<!-- 摘要卡片列 -->
+<div class="row mb-4" id="summaryCards">
+    <div class="col-md-3">
+        <div class="card summary-card">
+            <div class="card-body">
+                <div class="text-muted small">總市值</div>
+                <div class="fs-4 fw-bold" id="totalMarketValue">--</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card summary-card">
+            <div class="card-body">
+                <div class="text-muted small">總成本</div>
+                <div class="fs-4 fw-bold" id="totalCost">--</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card summary-card" id="pnlCard">
+            <div class="card-body">
+                <div class="text-muted small">未實現損益</div>
+                <div class="fs-4 fw-bold" id="totalPnL">--</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card summary-card" id="returnCard">
+            <div class="card-body">
+                <div class="text-muted small">報酬率</div>
+                <div class="fs-4 fw-bold" id="totalReturn">--</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- 持股比例圓餅圖 -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">持股比例</div>
+            <div class="card-body">
+                <canvas id="holdingsChart" height="260"></canvas>
+            </div>
+        </div>
+    </div>
+    <!-- 持股明細 -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">持股明細</div>
+            <div class="card-body p-0">
+                <table class="table table-sm table-striped mb-0">
+                    <thead class="table-dark">
+                        <tr><th>代號</th><th>名稱</th><th>股數</th><th>現價</th><th>市值</th><th>比例</th></tr>
+                    </thead>
+                    <tbody id="holdingsBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 風險警示 -->
+<div class="card mb-4">
+    <div class="card-header text-danger"><i class="bi bi-exclamation-triangle"></i> 季線風險警示（跌破 MA60）</div>
+    <div class="card-body p-0">
+        <table class="table table-sm table-striped mb-0">
+            <thead class="table-dark">
+                <tr><th>代號</th><th>名稱</th><th>股數</th><th>現價</th><th>MA60</th><th>偏離</th><th>偏離%</th></tr>
+            </thead>
+            <tbody id="alertsBody"><tr><td colspan="7" class="text-center text-muted">載入中...</td></tr></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="dashLoadingMsg" class="text-center" style="display:none;">
+    <div class="spinner-border text-primary"></div> 載入中...
+</div>
