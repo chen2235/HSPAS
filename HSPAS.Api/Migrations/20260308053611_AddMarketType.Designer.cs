@@ -4,6 +4,7 @@ using HSPAS.Api.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HSPAS.Api.Migrations
 {
     [DbContext(typeof(HspasDbContext))]
-    partial class HspasDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260308053611_AddMarketType")]
+    partial class AddMarketType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,12 +34,6 @@ namespace HSPAS.Api.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
-                    b.Property<string>("MarketType")
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(5)
-                        .HasColumnType("nvarchar(5)")
-                        .HasDefaultValue("TSE");
-
                     b.Property<decimal?>("ClosePrice")
                         .HasColumnType("decimal(19,4)");
 
@@ -50,6 +47,13 @@ namespace HSPAS.Api.Migrations
 
                     b.Property<decimal?>("LowPrice")
                         .HasColumnType("decimal(19,4)");
+
+                    b.Property<string>("MarketType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)")
+                        .HasDefaultValue("TSE");
 
                     b.Property<decimal?>("OpenPrice")
                         .HasColumnType("decimal(19,4)");
@@ -71,7 +75,7 @@ namespace HSPAS.Api.Migrations
                     b.Property<int?>("Transaction")
                         .HasColumnType("int");
 
-                    b.HasKey("TradeDate", "StockId", "MarketType");
+                    b.HasKey("TradeDate", "StockId");
 
                     b.ToTable("DailyStockPrice");
                 });

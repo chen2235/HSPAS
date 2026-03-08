@@ -1,6 +1,9 @@
-# 鴻仁股票損益系統 HSPAS — WBS（Work Breakdown Structure）
+# 鴻仁生活紀錄系統 HSPAS — WBS（Work Breakdown Structure）
 
 > **使用說明**：每項工作完成後，將 `[ ]` 改為 `[x]` 即可追蹤開發進度。
+>
+> **系統全名**：鴻仁生活紀錄系統（Hung-Jen Stock Profit Analysis System, HSPAS）
+> **技術棧**：ASP.NET Core 9 Web API + HTML5/Bootstrap/JS + SQL Server
 
 ## 版本記錄
 
@@ -13,21 +16,24 @@
 | 4.0 | 2026-03-07 | 全項目完成：DB 初始化腳本、DCA 同步 TradeRecord、技術指標圖表、買入分佈 API+前端、未實現損益顯示、單元/整合測試、start/stop 腳本修正 |
 | 5.0 | 2026-03-07 | UX 優化：所有頁面 alert() 改為 inline 訊息、中文化、排序功能、自動載入、表單預設值、DCA/交易紀錄編輯功能、損益顏色標示、靜態檔案 no-cache、run.bat/stop.bat |
 | 6.0 | 2026-03-07 | 新增「上傳國泰證日對帳單」功能：PDF 解析 API、批次新增 API、前端匯入介面與待確認明細表格 |
+| 7.0 | 2026-03-08 | 新增「功能選單管理」：MenuFunction 資料表與初始資料（§2.11-2.14）、三層式動態 Sidebar（§3B）、GET /api/menu/tree、POST /api/menu/reorder、選單排序設定頁面 /settings/menu-sorting |
+| 8.0 | 2026-03-08 | 新增「上櫃（OTC）行情資料」：TPEx 上櫃盤後 CSV 抓取（§4.6-4.8）、MarketType 欄位（§2.15）、雙來源回補 TSE+OTC（§7.8）、前端市場別顯示（§6.8） |
+| 9.0 | 2026-03-08 | 重構回補為「單日模式」：移除 BackfillService 區間批次，新增 IDailyPriceService.BackfillOneDayAsync（先刪後插）、API 改為單一日期、前端簡化為單日選擇器（§7.8-7.11） |
 
 ---
 
-## 1. 專案初始化與基礎建設（skill ch1, ch8）
+## 1. 專案初始化與基礎建設（skill §1, §8）
 
 - [x] 1.1 建立 ASP.NET Core 9 Web API 專案
 - [x] 1.2 設定分層架構（Controllers / Services / Repositories / Domain / Infrastructure）
-- [x] 1.3 設定 SQL Server 連線（appsettings.json）
+- [x] 1.3 設定 SQL Server 連線（appsettings.json）— Server=localhost, DB=HSPAS, User=hspasmgr
 - [x] 1.4 設定 EF Core 資料存取層
 - [x] 1.5 建立前端靜態檔案目錄結構（HTML5 + Bootstrap + JS）
-- [x] 1.6 設定 Swagger / OpenAPI 文件
+- [x] 1.6 設定 Swagger / OpenAPI 文件（http://localhost:5117/openapi/v1.json）
 
 ---
 
-## 2. 資料庫建置（skill ch4, ch5, ch7, ch12）
+## 2. 資料庫建置（skill §4, §5, §7, §12, §3.2）
 
 - [x] 2.1 建立資料庫 `HSPAS` 與使用者帳號 `hspasmgr`（setup-db.sql）
 - [x] 2.2 建立 `DailyStockPrice` 資料表（PK: TradeDate + StockId）
@@ -39,14 +45,19 @@
 - [x] 2.8 修正金額欄位精度為 `decimal(19,4)`（Price, Fee, Tax, OtherCost, NetAmount, Amount, TradeValue 等）
 - [x] 2.9 修正 `DailyStockPrice.TradeValue` 型別為 `decimal(19,4)`（原為 bigint）
 - [x] 2.10 修正 `EtfInfo.Category` 為 NOT NULL（原為 nullable）
+- [x] 2.11 建立 `MenuFunction` 資料表（Id, ParentId, Level, FuncCode, DisplayName, RouteUrl, SortOrder, IsActive, Remark, CreateTime）
+- [x] 2.12 `MenuFunction` 初始資料 — 股票損益紀錄（STOCK_ROOT → STOCK_ANALYSIS → 11 個 Level 3 功能）
+- [x] 2.13 `MenuFunction` 初始資料 — 健康管理紀錄（HEALTH_ROOT → HEALTH_CHECKUP → 4 個 Level 3 功能）
+- [x] 2.14 `MenuFunction` 初始資料 — 生活計帳（LIFE_ROOT → LIFE_SIS → 2 個 Level 3 功能）
+- [x] 2.15 `DailyStockPrice` 新增 `MarketType` 欄位（nvarchar(5), 預設 "TSE"，區分上市/上櫃）
 
 ---
 
-## 3. 前端主框架與共用 Layout（skill ch3）
+## 3. 前端主框架與共用 Layout（skill §3）
 
 - [x] 3.1 實作共用三區塊布局（Header + Sidebar + Main Content）
-- [x] 3.2 上方橫幅（Header）：左側顯示「鴻仁股票損益系統 HSPAS」，右側預留使用者資訊
-- [x] 3.3 左側功能列（Sidebar）：依 skill 3.2 表格建立 11 項功能選單
+- [x] 3.2 上方橫幅（Header）：左側顯示「鴻仁生活紀錄系統」，右側預留使用者資訊
+- [x] 3.3 左側功能列（Sidebar）：依 skill §3.2 建立功能選單
   - [x] DASH — 儀表板 Dashboard (`/dashboard`)
   - [x] CAL — 日曆行情查詢 (`/calendar`)
   - [x] STOCK — 個股/ETF 查詢入口 (`/stock`)
@@ -62,6 +73,15 @@
 - [x] 3.5 Header + Sidebar 為共用 Layout，不隨頁面切換重繪（SPA Hash Router）
 - [x] 3.6 將現有頁面（calendar, stock, backfill）改為嵌入共用 Layout
 
+### 3B. 三層式功能選單系統（skill §3.2, §3.3, menu_skill.md）
+
+- [x] 3.7 建立 `MenuFunction` EF Core 實體（`Entities/MenuFunction.cs`）與 DbSet + FuncCode 唯一索引
+- [x] 3.8 建立 `IMenuService` / `MenuService`（組樹狀 DTO `GetMenuTreeAsync`、批次更新 `ReorderAsync` 含階層驗證）
+- [x] 3.9 `GET /api/menu/tree` — 回傳完整三層選單樹 JSON（遞迴 children，僅 IsActive=1）
+- [x] 3.10 `POST /api/menu/reorder` — 接收拖拉排序結果，驗證階層合法性（L1 ParentId=NULL, L2→L1, L3→L2, SortOrder>0），批次更新 DB
+- [x] 3.11 前端 Sidebar 改為 API 驅動：`router.js` 新增 `loadSidebar()` 呼叫 `/api/menu/tree` 動態渲染三層可展開/收合選單（含 fallback 靜態選單）
+- [x] 3.12 前端 `/settings/menu-sorting` 頁面：拖拉排序 UI（HTML5 Drag & Drop）+ 節點資訊面板 + 儲存按鈕呼叫 `/api/menu/reorder`
+
 ---
 
 ## 4. TWSE 盤後資料抓取服務（skill ch6）
@@ -71,6 +91,9 @@
 - [x] 4.3 處理 CSV 千分位、空值、數字格式清洗
 - [x] 4.4 實作歷史資料抓取邏輯（供回補使用）
 - [x] 4.5 實作例外處理與 retry 機制
+- [x] 4.6 新增上櫃（OTC）盤後資料抓取（TPEx DAILY_CLOSE_quotes CSV）
+- [x] 4.7 實作 TPEx CSV 解析（ParseTpexCsv：民國日期、18 欄位對應）
+- [x] 4.8 實作民國日期轉換（ParseRocDate：YYYMMDD → DateTime）
 
 ---
 
@@ -91,6 +114,7 @@
 - [x] 6.5 行情列表排序功能（漲跌、成交量等）
 - [x] 6.6 表格中點選股票代號導向 `/stock/{stockId}`
 - [x] 6.7 進入頁面自動載入當日行情，預設成交股數由大到小排序
+- [x] 6.8 行情列表新增「市場別」欄位（TSE 藍色 badge / OTC 黃色 badge），支援搜尋篩選
 
 ---
 
@@ -103,6 +127,11 @@
 - [x] 7.5 建立前端 `/backfill` 頁面
 - [x] 7.6 前端表單：from、to 日期選擇、dryRun 勾選框
 - [x] 7.7 前端結果表格顯示每日回補狀態
+- [x] 7.8 重構為單日回補模式：移除 `IBackfillService` / `BackfillService` 區間批次邏輯
+- [x] 7.9 `IDailyPriceService` 新增 `BackfillOneDayAsync(date)`、`FetchTseDailyAsync(date)`、`FetchOtcDailyAsync(date)`
+- [x] 7.10 `BackfillOneDayAsync` 實作：抓取 TSE+OTC → 先刪該日舊資料 → 重新寫入（ExecuteDeleteAsync + AddRange + SaveChangesAsync）
+- [x] 7.11 `POST /api/history/backfill` 改為接收單一 `date` 參數，回傳 `BackfillOneDayResult`（date, status, tseCount, otcCount, message）
+- [x] 7.12 前端 `/backfill` 改為單一日期選擇器 + 回補按鈕 + 結果卡片（TSE/OTC/合計數量）
 
 ---
 
@@ -246,28 +275,50 @@
 
 ---
 
-## 16. 整合測試與部署
+## 16. 健康管理紀錄模組（skill §2 — 未來功能）
 
-- [x] 16.1 撰寫後端單元測試（Service 層計算邏輯）— TechnicalIndicatorServiceTests、PortfolioServiceTests
-- [x] 16.2 撰寫 API 整合測試 — TradesControllerTests、DcaControllerTests（含 DCA→TradeRecord 同步驗證）
-- [x] 16.3 前端功能驗證（各頁面完整流程）— 啟動後 API 端點全數回應 200
-- [x] 16.4 效能調校（DB 查詢最佳化、索引檢視）— EF Core 索引已在 Migration 中建立
-- [x] 16.5 部署設定：run.bat（前景啟動）/ stop.bat 啟停腳本
+> Level 1: HEALTH_ROOT → Level 2: HEALTH_CHECKUP → Level 3 功能頁
 
----
-
-## 17. UX 優化與前端強化
-
-- [x] 17.1 所有頁面 `alert()` 替換為 inline `showMsg()` 訊息（Bootstrap dismissible alerts，含圖示、時間戳、自動捲動、成功訊息自動消失）
-- [x] 17.2 全站中文化（所有標籤、按鈕、狀態 badge、圖表標籤、貨幣格式 NT$）
-- [x] 17.3 開發環境靜態檔案 no-cache（Program.cs StaticFileOptions）避免瀏覽器快取舊 JS/CSS
-- [x] 17.4 GitHub 版控初始化（.gitignore、first commit、push to origin/main）
+- [ ] 16.1 健檢報告資料表設計（個人每季 + 公司年度健檢）
+- [ ] 16.2 每三個月報告紀錄上傳 API 與前端 `/health/checkup/qtr/upload`
+- [ ] 16.3 每三個月報告儀表板前端 `/health/checkup/qtr/dashboard`
+- [ ] 16.4 公司每年報告紀錄上傳 API 與前端 `/health/checkup/company/upload`
+- [ ] 16.5 公司每年報告儀表板前端 `/health/checkup/company/dashboard`
 
 ---
 
-## 18. IIS 部署指引
+## 17. 生活計帳模組（skill §2 — 未來功能）
 
-### 18.1 發佈指令
+> Level 1: LIFE_ROOT → Level 2: LIFE_SIS → Level 3 功能頁
+
+- [ ] 17.1 妹妹紀錄資料表設計（收支與事件紀錄）
+- [ ] 17.2 妹妹紀錄維護 API 與前端 `/life/sister/records`
+- [ ] 17.3 妹妹紀錄年度分析 API 與前端 `/life/sister/yearly-analysis`
+
+---
+
+## 18. 整合測試與部署
+
+- [x] 18.1 撰寫後端單元測試（Service 層計算邏輯）— TechnicalIndicatorServiceTests、PortfolioServiceTests
+- [x] 18.2 撰寫 API 整合測試 — TradesControllerTests、DcaControllerTests（含 DCA→TradeRecord 同步驗證）
+- [x] 18.3 前端功能驗證（各頁面完整流程）— 啟動後 API 端點全數回應 200
+- [x] 18.4 效能調校（DB 查詢最佳化、索引檢視）— EF Core 索引已在 Migration 中建立
+- [x] 18.5 部署設定：run.bat（前景啟動）/ stop.bat 啟停腳本
+
+---
+
+## 19. UX 優化與前端強化
+
+- [x] 19.1 所有頁面 `alert()` 替換為 inline `showMsg()` 訊息（Bootstrap dismissible alerts，含圖示、時間戳、自動捲動、成功訊息自動消失）
+- [x] 19.2 全站中文化（所有標籤、按鈕、狀態 badge、圖表標籤、貨幣格式 NT$）
+- [x] 19.3 開發環境靜態檔案 no-cache（Program.cs StaticFileOptions）避免瀏覽器快取舊 JS/CSS
+- [x] 19.4 GitHub 版控初始化（.gitignore、first commit、push to origin/main）
+
+---
+
+## 20. IIS 部署指引
+
+### 20.1 發佈指令
 
 ```
 cd HSPAS.Api
@@ -276,7 +327,7 @@ dotnet publish -c Release
 D:\0.TradeVan\2235Stock-trading\HSPAS.Api\bin\Release\net9.0\publish
 發佈輸出目錄：`HSPAS.Api\bin\Release\net9.0\publish\`
 
-### 18.2 需複製至 IIS 網站目錄的檔案
+### 20.2 需複製至 IIS 網站目錄的檔案
 
 將以下 `publish\` 目錄下的**所有檔案與資料夾**完整複製至 IIS 網站根目錄（例如 `C:\inetpub\wwwroot\HSPAS\`）：
 
@@ -347,7 +398,8 @@ publish\
     │   ├── recommendations.js
     │   ├── alerts.js
     │   ├── backfill.js
-    │   └── settings.js
+    │   ├── settings.js
+    │   └── menu-sorting.js
     └── pages\                                ← HTML 頁面片段
         ├── dashboard.html
         ├── calendar.html
@@ -359,14 +411,16 @@ publish\
         ├── recommendations.html
         ├── alerts.html
         ├── backfill.html
-        └── settings.html
+        ├── settings.html
+        └── menu-sorting.html
 ```
 
 > **簡易做法**：直接將 `publish\` 資料夾內的所有內容完整複製到 IIS 網站目錄即可。
 
-### 18.3 IIS 設定注意事項
+### 20.3 IIS 設定注意事項
 
 1. **安裝 ASP.NET Core Hosting Bundle**（.NET 9.0 Runtime）
 2. **應用程式集區**：設定為「No Managed Code」（無受控程式碼）
 3. **appsettings.json**：部署前修改 `ConnectionStrings:DefaultConnection` 為正式環境 DB 連線
 4. **web.config**：publish 時已自動產生，包含 ASP.NET Core Module 設定，無需手動修改
+

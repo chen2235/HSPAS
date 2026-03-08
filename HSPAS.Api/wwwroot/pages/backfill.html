@@ -1,5 +1,5 @@
 <h3>歷史資料回補工具</h3>
-<p class="text-muted">管理者用：指定日期區間，系統會逐日從台灣證券交易所補抓缺失的行情資料。</p>
+<p class="text-muted">指定日期區間，系統會逐日從台灣證券交易所（上市）與櫃買中心（上櫃）抓取行情並寫入資料庫。</p>
 
 <div class="row mb-3">
     <div class="col-md-3">
@@ -10,24 +10,61 @@
         <label class="form-label">結束日期</label>
         <input type="date" class="form-control" id="toDate">
     </div>
-    <div class="col-md-3 d-flex align-items-end gap-2">
-        <button class="btn btn-outline-info" id="btnDryRun">試算檢查</button>
+    <div class="col-md-3 d-flex align-items-end">
         <button class="btn btn-warning" id="btnBackfill">開始回補</button>
     </div>
-</div>
-
-<div id="resultSection" style="display:none;">
-    <h5>回補結果（<span id="resultSummary"></span>）</h5>
-    <table class="table table-sm table-striped">
-        <thead class="table-dark">
-            <tr><th>日期</th><th>狀態</th><th>說明</th></tr>
-        </thead>
-        <tbody id="resultBody"></tbody>
-    </table>
 </div>
 
 <div id="backfillMsg" class="mt-2"></div>
 
 <div id="loadingMsg" class="text-center" style="display:none;">
-    <div class="spinner-border text-primary"></div> 正在向台灣證券交易所抓取資料，請稍候...
+    <div class="spinner-border text-primary"></div> 正在逐日抓取行情資料，請稍候...
+</div>
+
+<div id="resultSection" style="display:none;">
+    <!-- 摘要卡片 -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title" id="resultTitle">回補結果</h5>
+            <div class="row text-center">
+                <div class="col">
+                    <div class="fs-4 fw-bold" id="summaryDays">0</div>
+                    <div class="text-muted">工作日</div>
+                </div>
+                <div class="col">
+                    <div class="fs-4 fw-bold text-success" id="summarySuccess">0</div>
+                    <div class="text-muted">成功</div>
+                </div>
+                <div class="col">
+                    <div class="fs-4 fw-bold text-secondary" id="summaryNoData">0</div>
+                    <div class="text-muted">無資料</div>
+                </div>
+                <div class="col">
+                    <div class="fs-4 fw-bold text-danger" id="summaryFailed">0</div>
+                    <div class="text-muted">失敗</div>
+                </div>
+                <div class="col">
+                    <div class="fs-4 fw-bold text-primary" id="summaryTse">0</div>
+                    <div class="text-muted">TSE 筆數</div>
+                </div>
+                <div class="col">
+                    <div class="fs-4 fw-bold text-warning" id="summaryOtc">0</div>
+                    <div class="text-muted">OTC 筆數</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 逐日明細 -->
+    <table class="table table-sm table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>日期</th>
+                <th>狀態</th>
+                <th>TSE</th>
+                <th>OTC</th>
+                <th>說明</th>
+            </tr>
+        </thead>
+        <tbody id="resultBody"></tbody>
+    </table>
 </div>

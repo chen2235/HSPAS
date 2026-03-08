@@ -133,7 +133,7 @@ HSPAS.registerPage('calendar', function () {
         let filtered = allItems;
         if (keyword) {
             filtered = allItems.filter(i =>
-                i.stockId.toLowerCase().includes(keyword) || i.stockName.toLowerCase().includes(keyword));
+                i.stockId.toLowerCase().includes(keyword) || i.stockName.toLowerCase().includes(keyword) || (i.marketType && i.marketType.toLowerCase().includes(keyword)));
         }
         filtered.sort((a, b) => {
             let va = a[sortCol], vb = b[sortCol];
@@ -146,9 +146,13 @@ HSPAS.registerPage('calendar', function () {
         priceBody.innerHTML = filtered.map(i => {
             const changeClass = (i.priceChange > 0) ? 'price-up' : (i.priceChange < 0) ? 'price-down' : '';
             const changeSign = (i.priceChange > 0) ? '+' : '';
+            const mtBadge = i.marketType === 'OTC'
+                ? '<span class="badge bg-warning text-dark">OTC</span>'
+                : '<span class="badge bg-primary">TSE</span>';
             return `<tr>
                 <td><a href="#/stock?id=${i.stockId}">${i.stockId}</a></td>
                 <td>${i.stockName}</td>
+                <td>${mtBadge}</td>
                 <td>${fmt(i.closePrice)}</td>
                 <td class="${changeClass}">${changeSign}${fmt(i.priceChange)}</td>
                 <td>${fmt(i.openPrice)}</td>

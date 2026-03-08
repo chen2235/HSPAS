@@ -19,9 +19,9 @@ builder.Services.AddHttpClient("TWSE", client =>
 // --- DI: Services ---
 builder.Services.AddScoped<ITwseDataService, TwseDataService>();
 builder.Services.AddScoped<IDailyPriceService, DailyPriceService>();
-builder.Services.AddScoped<IBackfillService, BackfillService>();
 builder.Services.AddScoped<IPortfolioService, PortfolioService>();
 builder.Services.AddSingleton<ITechnicalIndicatorService, TechnicalIndicatorService>();
+builder.Services.AddScoped<IMenuService, MenuService>();
 
 // --- Controllers & Swagger ---
 builder.Services.AddControllers();

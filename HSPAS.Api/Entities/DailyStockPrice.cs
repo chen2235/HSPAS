@@ -38,5 +38,9 @@ public class DailyStockPrice
 
     public int? Transaction { get; set; }
 
+    /// <summary>市場別：TSE（上市）、OTC（上櫃）</summary>
+    [MaxLength(5)]
+    public string MarketType { get; set; } = "TSE";
+
     public DateTime CreateTime { get; set; } = DateTime.UtcNow;
 }

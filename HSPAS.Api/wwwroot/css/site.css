@@ -27,7 +27,31 @@ body { background-color: #f8f9fa; display: flex; flex-direction: column; }
 }
 #sidebar a.nav-link:hover { background: rgba(255,255,255,.06); color: #fff; }
 #sidebar a.nav-link.active { background: rgba(255,255,255,.1); color: #fff; border-left-color: #0d6efd; font-weight: 600; }
+#sidebar a.nav-link.disabled { opacity: .5; pointer-events: none; }
 #sidebar a.nav-link .icon { width: 22px; text-align: center; margin-right: 10px; font-size: .95rem; }
+
+/* Sidebar 三層選單 */
+#sidebar .sidebar-l1 {
+    padding: 10px 14px 4px; font-size: .78rem; color: #8ab4f8; cursor: pointer;
+    display: flex; align-items: center; letter-spacing: .5px; font-weight: 600;
+    transition: background .15s;
+}
+#sidebar .sidebar-l1:hover { background: rgba(255,255,255,.04); }
+#sidebar .sidebar-l1 .icon { width: 20px; text-align: center; margin-right: 8px; font-size: .85rem; }
+#sidebar .sidebar-l1 .sidebar-toggle { font-size: .65rem; }
+
+#sidebar .nav-subsection {
+    padding: 6px 14px 3px 28px; font-size: .72rem; color: #adb5bd; cursor: pointer;
+    display: flex; align-items: center;
+    transition: background .15s;
+}
+#sidebar .nav-subsection:hover { background: rgba(255,255,255,.03); }
+#sidebar .nav-subsection .icon { width: 18px; text-align: center; margin-right: 6px; font-size: .8rem; }
+#sidebar .nav-subsection .sidebar-toggle { font-size: .6rem; }
+
+#sidebar .sidebar-l2-children a.nav-link { padding-left: 46px; font-size: .82rem; }
+#sidebar .sidebar-l1-children.collapsed,
+#sidebar .sidebar-l2-children.collapsed { display: none; }
 
 /* Main content */
 #main-content {

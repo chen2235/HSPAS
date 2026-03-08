@@ -35,7 +35,8 @@ public class DailyPricesController : ControllerBase
                 i.LowPrice,
                 i.ClosePrice,
                 i.PriceChange,
-                i.Transaction
+                i.Transaction,
+                i.MarketType
             })
         });
     }
@@ -69,7 +70,8 @@ public class DailyPricesController : ControllerBase
                 i.LowPrice,
                 i.ClosePrice,
                 i.PriceChange,
-                i.Transaction
+                i.Transaction,
+                i.MarketType
             })
         });
     }

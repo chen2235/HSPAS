@@ -13,12 +13,17 @@ public class HspasDbContext : DbContext
     public DbSet<DcaPlan> DcaPlans => Set<DcaPlan>();
     public DbSet<DcaExecution> DcaExecutions => Set<DcaExecution>();
     public DbSet<EtfInfo> EtfInfos => Set<EtfInfo>();
+    public DbSet<MenuFunction> MenuFunctions => Set<MenuFunction>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // DailyStockPrice 複合主鍵
         modelBuilder.Entity<DailyStockPrice>()
-            .HasKey(d => new { d.TradeDate, d.StockId });
+            .HasKey(d => new { d.TradeDate, d.StockId, d.MarketType });
+
+        modelBuilder.Entity<DailyStockPrice>()
+            .Property(d => d.MarketType)
+            .HasDefaultValue("TSE");
 
         modelBuilder.Entity<DailyStockPrice>()
             .Property(d => d.CreateTime)
@@ -48,5 +53,18 @@ public class HspasDbContext : DbContext
         modelBuilder.Entity<EtfInfo>()
             .Property(e => e.CreateTime)
             .HasDefaultValueSql("SYSUTCDATETIME()");
+
+        // MenuFunction
+        modelBuilder.Entity<MenuFunction>()
+            .HasIndex(m => m.FuncCode)
+            .IsUnique();
+
+        modelBuilder.Entity<MenuFunction>()
+            .Property(m => m.CreateTime)
+            .HasDefaultValueSql("SYSUTCDATETIME()");
+
+        modelBuilder.Entity<MenuFunction>()
+            .Property(m => m.IsActive)
+            .HasDefaultValue(true);
     }
 }

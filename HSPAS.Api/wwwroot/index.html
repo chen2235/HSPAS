@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HSPAS - 鴻仁股票損益系統</title>
+    <title>HSPAS - 鴻仁生活紀錄系統</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/css/site.css">
@@ -12,56 +13,13 @@
 <body>
     <!-- Header -->
     <header id="app-header">
-        <div class="brand">鴻仁股票損益系統<small>HSPAS</small></div>
+        <div class="brand">鴻仁生活紀錄系統<small>HSPAS</small></div>
     </header>
 
     <div id="app-body">
-        <!-- Sidebar -->
+        <!-- Sidebar（由 API 動態載入三層選單） -->
         <nav id="sidebar">
-            <div class="nav-section">概覽</div>
-            <a class="nav-link" href="#/dashboard" data-page="dashboard">
-                <span class="icon"><i class="bi bi-speedometer2"></i></span>儀表板
-            </a>
-
-            <div class="nav-section">行情查詢</div>
-            <a class="nav-link" href="#/calendar" data-page="calendar">
-                <span class="icon"><i class="bi bi-calendar3"></i></span>日曆行情查詢
-            </a>
-            <a class="nav-link" href="#/stock" data-page="stock">
-                <span class="icon"><i class="bi bi-graph-up"></i></span>個股/ETF 查詢
-            </a>
-            <a class="nav-link" href="#/etf" data-page="etf">
-                <span class="icon"><i class="bi bi-collection"></i></span>ETF 專區
-            </a>
-
-            <div class="nav-section">紀錄維護</div>
-            <a class="nav-link" href="#/trades" data-page="trades">
-                <span class="icon"><i class="bi bi-receipt"></i></span>交易紀錄管理
-            </a>
-            <a class="nav-link" href="#/dca" data-page="dca">
-                <span class="icon"><i class="bi bi-piggy-bank"></i></span>定期定額管理
-            </a>
-
-            <div class="nav-section">分析報表</div>
-            <a class="nav-link" href="#/pnl" data-page="pnl">
-                <span class="icon"><i class="bi bi-calculator"></i></span>損益與成本查詢
-            </a>
-
-            <div class="nav-section">決策輔助</div>
-            <a class="nav-link" href="#/recommendations" data-page="recommendations">
-                <span class="icon"><i class="bi bi-lightbulb"></i></span>投資建議
-            </a>
-            <a class="nav-link" href="#/alerts" data-page="alerts">
-                <span class="icon"><i class="bi bi-exclamation-triangle"></i></span>風險警示
-            </a>
-
-            <div class="nav-section">管理工具</div>
-            <a class="nav-link" href="#/backfill" data-page="backfill">
-                <span class="icon"><i class="bi bi-cloud-download"></i></span>歷史資料回補
-            </a>
-            <a class="nav-link" href="#/settings" data-page="settings">
-                <span class="icon"><i class="bi bi-gear"></i></span>系統設定
-            </a>
+            <div id="sidebar-loading" class="text-center py-3"><small class="text-muted">載入選單中…</small></div>
         </nav>
 
         <!-- Main Content -->
