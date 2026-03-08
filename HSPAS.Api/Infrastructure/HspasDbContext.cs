@@ -14,6 +14,8 @@ public class HspasDbContext : DbContext
     public DbSet<DcaExecution> DcaExecutions => Set<DcaExecution>();
     public DbSet<EtfInfo> EtfInfos => Set<EtfInfo>();
     public DbSet<MenuFunction> MenuFunctions => Set<MenuFunction>();
+    public DbSet<QuarterHealthReport> QuarterHealthReports => Set<QuarterHealthReport>();
+    public DbSet<QuarterHealthReportDetail> QuarterHealthReportDetails => Set<QuarterHealthReportDetail>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -66,5 +68,20 @@ public class HspasDbContext : DbContext
         modelBuilder.Entity<MenuFunction>()
             .Property(m => m.IsActive)
             .HasDefaultValue(true);
+
+        // QuarterHealthReport
+        modelBuilder.Entity<QuarterHealthReport>()
+            .Property(r => r.CreatedAt)
+            .HasDefaultValueSql("SYSUTCDATETIME()");
+
+        // QuarterHealthReportDetail FK
+        modelBuilder.Entity<QuarterHealthReportDetail>()
+            .HasOne(d => d.Report)
+            .WithOne(r => r.Detail)
+            .HasForeignKey<QuarterHealthReportDetail>(d => d.ReportId);
+
+        modelBuilder.Entity<QuarterHealthReportDetail>()
+            .Property(d => d.CreatedAt)
+            .HasDefaultValueSql("SYSUTCDATETIME()");
     }
 }

@@ -1,0 +1,78 @@
+<h3><i class="bi bi-speedometer"></i> 每三個月報告儀表板</h3>
+<div id="qtrDashMsg"></div>
+
+<!-- 報告選擇 + 摘要 -->
+<div class="card mb-4">
+    <div class="card-header">報告選擇與摘要</div>
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">選擇報告</label>
+                <select class="form-select" id="dashReportSelect"></select>
+            </div>
+            <div class="col-md-9" id="dashSummaryArea">
+                <div class="text-muted">請選擇報告查看摘要</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 與上一季比較卡片 -->
+<div class="row mb-4" id="dashCompareCards" style="display:none;">
+    <div class="col-12"><h5>與上一次比較</h5></div>
+</div>
+
+<!-- 趨勢圖 -->
+<div class="row mb-4" id="dashCharts" style="display:none;">
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-header">三酸甘油脂 Triglyceride 趨勢</div>
+            <div class="card-body"><canvas id="chartTriglyceride" height="200"></canvas></div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-header">高密度脂蛋白 HDL 趨勢</div>
+            <div class="card-body"><canvas id="chartHDL" height="200"></canvas></div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-header">飯前血糖 AC Sugar 趨勢</div>
+            <div class="card-body"><canvas id="chartAcSugar" height="200"></canvas></div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-header">糖化血色素 HbA1c 趨勢</div>
+            <div class="card-body"><canvas id="chartHba1c" height="200"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<!-- 所有報告歷史表 -->
+<div class="card">
+    <div class="card-header">完整歷史紀錄</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm table-striped table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>報告日期</th>
+                        <th>總膽固醇</th>
+                        <th>三酸甘油脂</th>
+                        <th>HDL</th>
+                        <th>SGPT</th>
+                        <th>肌酐</th>
+                        <th>尿酸</th>
+                        <th>腎絲球過濾率 MDRD eGFR</th>
+                        <th>腎絲球過濾 CKD-EPI eGFR</th>
+                        <th>飯前血糖</th>
+                        <th>HbA1c</th>
+                    </tr>
+                </thead>
+                <tbody id="dashHistoryBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>

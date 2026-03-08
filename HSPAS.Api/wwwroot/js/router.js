@@ -28,6 +28,8 @@
         'backfill':        { html: '/pages/backfill.html',   js: ['/js/backfill.js'] },
         'settings':        { html: '/pages/settings.html',   js: ['/js/settings.js'] },
         'settings/menu-sorting': { html: '/pages/menu-sorting.html', js: ['/js/menu-sorting.js'] },
+        'health/checkup/qtr/upload':    { html: '/pages/health-qtr-upload.html',    js: ['/js/health-qtr-upload.js'] },
+        'health/checkup/qtr/dashboard': { html: '/pages/health-qtr-dashboard.html', js: ['/js/health-qtr-dashboard.js'] },
     };
 
     // RouteUrl → 路由 hash 的對應（DB 中的 RouteUrl 轉成前端 hash）
@@ -44,6 +46,8 @@
         '/admin/history-backfill': 'backfill',
         '/settings': 'settings',
         '/settings/menu-sorting': 'settings/menu-sorting',
+        '/health/checkup/qtr/upload': 'health/checkup/qtr/upload',
+        '/health/checkup/qtr/dashboard': 'health/checkup/qtr/dashboard',
     };
 
     // FuncCode → Bootstrap Icon 對應

@@ -19,6 +19,7 @@
 | 7.0 | 2026-03-08 | 新增「功能選單管理」：MenuFunction 資料表與初始資料（§2.11-2.14）、三層式動態 Sidebar（§3B）、GET /api/menu/tree、POST /api/menu/reorder、選單排序設定頁面 /settings/menu-sorting |
 | 8.0 | 2026-03-08 | 新增「上櫃（OTC）行情資料」：TPEx 上櫃盤後 CSV 抓取（§4.6-4.8）、MarketType 欄位（§2.15）、雙來源回補 TSE+OTC（§7.8）、前端市場別顯示（§6.8） |
 | 9.0 | 2026-03-08 | 重構回補為「單日模式」：移除 BackfillService 區間批次，新增 IDailyPriceService.BackfillOneDayAsync（先刪後插）、API 改為單一日期、前端簡化為單日選擇器（§7.8-7.11） |
+| 10.0 | 2026-03-08 | 新增「每三個月健檢報告」模組：Tesseract OCR 影像辨識（eng+chi_tra 雙語、四方向旋轉偵測、逐行解析+數值範圍驗證）、QuarterHealthReport/Detail 資料表、上傳+手動輸入+儀表板前端、趨勢圖+比較卡片（§16） |
 
 ---
 
@@ -275,15 +276,62 @@
 
 ---
 
-## 16. 健康管理紀錄模組（skill §2 — 未來功能）
+## 16. 健康管理紀錄模組（skill §2）
 
 > Level 1: HEALTH_ROOT → Level 2: HEALTH_CHECKUP → Level 3 功能頁
 
-- [ ] 16.1 健檢報告資料表設計（個人每季 + 公司年度健檢）
-- [ ] 16.2 每三個月報告紀錄上傳 API 與前端 `/health/checkup/qtr/upload`
-- [ ] 16.3 每三個月報告儀表板前端 `/health/checkup/qtr/dashboard`
-- [ ] 16.4 公司每年報告紀錄上傳 API 與前端 `/health/checkup/company/upload`
-- [ ] 16.5 公司每年報告儀表板前端 `/health/checkup/company/dashboard`
+### 16A. 每三個月健檢報告（廖內科）
+
+#### 16A.1 資料庫設計
+
+- [x] 16.1 建立 `QuarterHealthReport` 主表（Id, ReportDate, HospitalName, SourceFileName, SourceFilePath, OcrJsonRaw, CreatedAt, UpdatedAt）
+- [x] 16.2 建立 `QuarterHealthReportDetail` 明細表（10 項檢驗值 + 4 項異常旗標）
+  - [x] 脂質：TCholesterol, Triglyceride, HDL（decimal(6,2) nullable）
+  - [x] 肝功能：SGPT_ALT（decimal(6,2) nullable）
+  - [x] 腎功能：Creatinine, UricAcid, MDRD_EGFR, CKDEPI_EGFR（decimal(6,2) nullable）
+  - [x] 血糖：AcSugar（decimal(6,2) nullable）, Hba1c（decimal(4,2) nullable）
+  - [x] 異常旗標：TriglycerideHigh, HDLLow, AcSugarHigh, Hba1cHigh（bit nullable）
+- [x] 16.3 EF Core Entity + DbContext 配置（一對一 FK、CreatedAt 預設值）
+- [x] 16.4 EF Core Migration `AddQuarterHealthReport`
+
+#### 16A.2 OCR 影像辨識服務（Tesseract）
+
+- [x] 16.5 安裝 Tesseract NuGet 套件（`Tesseract` 5.2.0）
+- [x] 16.6 下載 tessdata 訓練資料（`eng.traineddata` 23MB + `chi_tra.traineddata` 57MB）
+- [x] 16.7 四方向旋轉偵測（0°/90°/180°/270°），以英文字母數字計數評分，20% 門檻避免誤判
+- [x] 16.8 雙語言 × 雙 PSM 模式辨識（eng + chi_tra × Auto + SingleBlock），合併取聯集
+- [x] 16.9 逐行關鍵字比對解析（`ParseByLine`）：每行比對項目關鍵字（含 OCR 常見誤判字如「種化血色素」「薩化血色素」）
+- [x] 16.10 數值範圍驗證（`PickBestNumber`）：每項檢驗定義合理 min/max，排除 OCR 亂碼數字，優先選有小數點的值
+- [x] 16.11 報告日期偵測（民國年 → 西元，支援「報告日期」「就醫日期」格式）
+- [x] 16.12 醫療院所偵測（中文 OCR 比對「廖內科」「醫院」「診所」等關鍵字）
+
+#### 16A.3 後端 API（`HealthCheckupQuarterController`）
+
+- [x] 16.13 `POST /api/health/checkup/qtr/upload` — 上傳 JPG/PNG + OCR 解析，回傳辨識數值供前端確認
+- [x] 16.14 `POST /api/health/checkup/qtr/manual` — 手動儲存報告（接收確認後的數值，自動計算異常旗標）
+- [x] 16.15 `GET /api/health/checkup/qtr/{reportId}` — 單筆報告明細
+- [x] 16.16 `GET /api/health/checkup/qtr/list` — 歷史報告列表（依 ReportDate 降序）
+- [x] 16.17 `DELETE /api/health/checkup/qtr/{reportId}` — 刪除報告
+
+#### 16A.4 前端 — 每三個月報告紀錄上傳 (`/health/checkup/qtr/upload`)
+
+- [x] 16.18 上傳區塊：檔案選擇（JPG/PNG）、報告日期、醫療院所、「上傳並解析」按鈕（含 spinner）
+- [x] 16.19 手動輸入區塊：10 項檢驗欄位分四群組（脂質代謝 / 肝功能 / 腎功能 / 血糖）
+- [x] 16.20 OCR 辨識後自動填入欄位，異常值紅框 + 正常值綠框標示，顯示「已辨識 X/10 項」
+- [x] 16.21 儲存報告按鈕（含上傳檔案路徑 + OCR 原始 JSON 一併寫入）
+- [x] 16.22 歷史報告列表（報告日期、醫療院所、各項數值、刪除操作）
+
+#### 16A.5 前端 — 每三個月報告儀表板 (`/health/checkup/qtr/dashboard`)
+
+- [x] 16.23 報告選擇下拉 + 摘要 Badge（紅色=異常 / 綠色=正常，含 ↑↓ 箭頭）
+- [x] 16.24 與上一次比較卡片（8 項指標：本次值 vs 前次值 + 差異 ↑↓，顏色標示好壞方向）
+- [x] 16.25 趨勢圖（Chart.js 折線圖 × 4）：三酸甘油脂(參考線 150)、HDL(參考線 40)、飯前血糖(參考線 100)、HbA1c(參考線 5.6)
+- [x] 16.26 完整歷史紀錄表（10 項檢驗值，異常值紅字+箭頭、正常值綠字）
+
+### 16B. 公司每年健檢報告（未來功能）
+
+- [ ] 16.27 公司每年報告紀錄上傳 API 與前端 `/health/checkup/company/upload`
+- [ ] 16.28 公司每年報告儀表板前端 `/health/checkup/company/dashboard`
 
 ---
 
@@ -373,7 +421,9 @@ publish\
 │   ├── UglyToad.PdfPig.Core.dll
 │   ├── UglyToad.PdfPig.Fonts.dll
 │   ├── UglyToad.PdfPig.Tokenization.dll
-│   └── UglyToad.PdfPig.Tokens.dll
+│   ├── UglyToad.PdfPig.Tokens.dll
+│   ├── Tesseract.dll                         ← OCR 引擎（健檢報告辨識）
+│   └── InteropDotNet.dll                     ← Tesseract 相依
 │
 ├── runtimes\                                  ← 平台相依原生程式庫（整個資料夾複製）
 │   ├── win\lib\net6.0\                       ← Windows 平台 DLL
@@ -382,6 +432,10 @@ publish\
 │   ├── win-arm\native\
 │   ├── win-arm64\native\
 │   └── unix\lib\net6.0\                      ← Linux 平台 DLL（Windows IIS 可不複製）
+│
+├── tessdata\                                     ← Tesseract OCR 訓練資料（必須複製）
+│   ├── eng.traineddata                          ← 英文模型（23MB）
+│   └── chi_tra.traineddata                      ← 繁體中文模型（57MB）
 │
 └── wwwroot\                                   ← 前端靜態檔案（整個資料夾複製）
     ├── index.html                            ← SPA 主頁
@@ -399,7 +453,9 @@ publish\
     │   ├── alerts.js
     │   ├── backfill.js
     │   ├── settings.js
-    │   └── menu-sorting.js
+    │   ├── menu-sorting.js
+    │   ├── health-qtr-upload.js              ← 健檢報告上傳（OCR 辨識 + 手動輸入）
+    │   └── health-qtr-dashboard.js           ← 健檢報告儀表板（趨勢圖 + 比較）
     └── pages\                                ← HTML 頁面片段
         ├── dashboard.html
         ├── calendar.html
@@ -412,7 +468,9 @@ publish\
         ├── alerts.html
         ├── backfill.html
         ├── settings.html
-        └── menu-sorting.html
+        ├── menu-sorting.html
+        ├── health-qtr-upload.html            ← 健檢報告上傳頁面
+        └── health-qtr-dashboard.html         ← 健檢報告儀表板頁面
 ```
 
 > **簡易做法**：直接將 `publish\` 資料夾內的所有內容完整複製到 IIS 網站目錄即可。

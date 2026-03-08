@@ -22,6 +22,8 @@ builder.Services.AddScoped<IDailyPriceService, DailyPriceService>();
 builder.Services.AddScoped<IPortfolioService, PortfolioService>();
 builder.Services.AddSingleton<ITechnicalIndicatorService, TechnicalIndicatorService>();
 builder.Services.AddScoped<IMenuService, MenuService>();
+builder.Services.AddScoped<IQuarterHealthReportService, QuarterHealthReportService>();
+builder.Services.AddScoped<IHealthReportOcrService, HealthReportOcrService>();
 
 // --- Controllers & Swagger ---
 builder.Services.AddControllers();

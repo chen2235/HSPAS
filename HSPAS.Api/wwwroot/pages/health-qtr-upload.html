@@ -1,0 +1,125 @@
+<h3><i class="bi bi-upload"></i> 每三個月報告紀錄上傳</h3>
+<div id="qtrUploadMsg"></div>
+
+<!-- 上傳區塊 -->
+<div class="card mb-4">
+    <div class="card-header">上傳健檢報告影像（選填）</div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">報告影像（JPG / PNG）</label>
+                <input type="file" class="form-control" id="qtrFile" accept=".jpg,.jpeg,.png">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">報告日期</label>
+                <input type="date" class="form-control" id="qtrReportDate">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">醫療院所</label>
+                <input type="text" class="form-control" id="qtrHospital" value="廖內科">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button class="btn btn-outline-primary w-100" id="btnUploadFile">
+                    <i class="bi bi-cloud-upload"></i> 上傳並解析
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 手動輸入檢驗數值 -->
+<div class="card mb-4">
+    <div class="card-header">輸入檢驗數值</div>
+    <div class="card-body">
+        <div class="row g-3">
+            <!-- 脂質 -->
+            <div class="col-12"><strong class="text-primary">脂質代謝</strong></div>
+            <div class="col-md-3">
+                <label class="form-label">總膽固醇 T-Cholesterol <small class="text-muted">mg/dL</small></label>
+                <input type="number" step="0.01" class="form-control" id="valTCholesterol" placeholder="參考 <200">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">三酸甘油脂 Triglyceride <small class="text-muted">mg/dL</small></label>
+                <input type="number" step="0.01" class="form-control" id="valTriglyceride" placeholder="參考 <150">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">高密度脂蛋白 HDL <small class="text-muted">mg/dL</small></label>
+                <input type="number" step="0.01" class="form-control" id="valHDL" placeholder="參考 男>40">
+            </div>
+
+            <!-- 肝功能 -->
+            <div class="col-12 mt-3"><strong class="text-primary">肝功能</strong></div>
+            <div class="col-md-3">
+                <label class="form-label">SGPT (ALT) <small class="text-muted">U/L</small></label>
+                <input type="number" step="0.01" class="form-control" id="valSGPT" placeholder="參考 ≤41">
+            </div>
+
+            <!-- 腎功能 -->
+            <div class="col-12 mt-3"><strong class="text-primary">腎功能</strong></div>
+            <div class="col-md-3">
+                <label class="form-label">肌酐 Creatinine <small class="text-muted">mg/dL</small></label>
+                <input type="number" step="0.01" class="form-control" id="valCreatinine" placeholder="參考 0.64-1.27">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">尿酸 Uric Acid <small class="text-muted">mg/dL</small></label>
+                <input type="number" step="0.01" class="form-control" id="valUricAcid" placeholder="參考 3.4-7.0">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">腎絲球過濾率 MDRD eGFR <small class="text-muted">mL/min</small></label>
+                <input type="number" step="0.01" class="form-control" id="valMDRD" placeholder="參考 >60">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">腎絲球過濾 CKD-EPI eGFR <small class="text-muted">mL/min</small></label>
+                <input type="number" step="0.01" class="form-control" id="valCKDEPI" placeholder="參考 >60">
+            </div>
+
+            <!-- 血糖 -->
+            <div class="col-12 mt-3"><strong class="text-primary">血糖</strong></div>
+            <div class="col-md-3">
+                <label class="form-label">飯前血糖 AC Sugar <small class="text-muted">mg/dL</small></label>
+                <input type="number" step="0.01" class="form-control" id="valAcSugar" placeholder="參考 70-100">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">糖化血色素 HbA1c <small class="text-muted">%</small></label>
+                <input type="number" step="0.01" class="form-control" id="valHba1c" placeholder="參考 4.0-5.6">
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button class="btn btn-primary" id="btnSaveReport">
+                <i class="bi bi-save"></i> 儲存報告
+            </button>
+            <button class="btn btn-outline-secondary ms-2" id="btnResetForm">
+                <i class="bi bi-arrow-counterclockwise"></i> 重置
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 歷史報告列表 -->
+<div class="card">
+    <div class="card-header">歷史報告列表</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm table-striped table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>報告日期</th>
+                        <th>醫療院所</th>
+                        <th>總膽固醇</th>
+                        <th>三酸甘油脂</th>
+                        <th>HDL</th>
+                        <th>SGPT</th>
+                        <th>肌酐</th>
+                        <th>尿酸</th>
+                        <th>飯前血糖</th>
+                        <th>HbA1c</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="qtrHistoryBody"></tbody>
+            </table>
+        </div>
+        <div id="qtrNoData" class="text-center text-muted py-3" style="display:none;">尚無歷史報告</div>
+    </div>
+</div>
