@@ -22,9 +22,14 @@ HSPAS.registerPage('pnl', async function () {
             const d = await resp.json();
             document.getElementById('pnlTotalCost').textContent = fmtM(d.totalCost);
             document.getElementById('pnlTotalMV').textContent = fmtM(d.totalMarketValue);
-            const cls = d.totalUnrealizedPnL >= 0 ? 'price-up' : 'price-down';
-            document.getElementById('pnlTotalPnL').innerHTML = `<span class="${cls}">${fmtM(d.totalUnrealizedPnL)}</span>`;
-            document.getElementById('pnlTotalReturn').innerHTML = `<span class="${cls}">${(d.totalUnrealizedReturn * 100).toFixed(2)}%</span>`;
+            const pnlVal = d.totalUnrealizedPnL;
+            const pnlCls = pnlVal >= 1 ? 'text-primary' : 'text-danger';
+            const pnlSign = pnlVal >= 1 ? '+' : '';
+            const retVal = d.totalUnrealizedReturn * 100;
+            const retCls2 = retVal >= 1 ? 'text-primary' : 'text-danger';
+            const retSign = retVal >= 1 ? '+' : '';
+            document.getElementById('pnlTotalPnL').innerHTML = `<span class="${pnlCls}">${pnlSign}${fmtM(pnlVal)}</span>`;
+            document.getElementById('pnlTotalReturn').innerHTML = `<span class="${retCls2}">${retSign}${retVal.toFixed(2)}%</span>`;
         }
     } catch {}
 
@@ -93,10 +98,10 @@ HSPAS.registerPage('pnl', async function () {
         document.getElementById('holdingsBody').innerHTML = sorted.map(d => {
             const retPct = d.unrealizedReturn * 100;
             const retPctStr = retPct.toFixed(2);
-            // 整列顏色: <=0% 紅色(price-up=紅), >=70% 藍色, 其餘預設
+            // 整列顏色: >=100% 藍色, >=1%且<100% 黑色, <=0% 紅色
             let retCls = '';
-            if (retPct <= 0) retCls = 'price-up';
-            else if (retPct >= 70) retCls = 'text-primary';
+            if (retPct >= 100) retCls = 'text-primary';
+            else if (retPct <= 0) retCls = 'text-danger';
             return `<tr class="${retCls}">
                 <td>${d.stockId}</td>
                 <td>${d.stockName}</td>

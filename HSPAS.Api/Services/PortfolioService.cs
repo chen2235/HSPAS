@@ -27,12 +27,13 @@ public class PortfolioService : IPortfolioService
 
         if (grouped.Count == 0) return new HoldingsSummary();
 
-        // 取最新收盤價
-        var latestDate = await _db.DailyStockPrices.MaxAsync(d => (DateTime?)d.TradeDate, ct);
-        var latestPrices = latestDate.HasValue
-            ? await _db.DailyStockPrices.Where(d => d.TradeDate == latestDate.Value)
-                .ToDictionaryAsync(d => d.StockId, d => d.ClosePrice, ct)
-            : new Dictionary<string, decimal?>();
+        // 取每檔股票各自的最新收盤價
+        var stockIds = grouped.Select(g => g.StockId).ToList();
+        var latestPrices = await _db.DailyStockPrices
+            .Where(d => stockIds.Contains(d.StockId))
+            .GroupBy(d => d.StockId)
+            .Select(g => g.OrderByDescending(d => d.TradeDate).First())
+            .ToDictionaryAsync(d => d.StockId, d => d.ClosePrice, ct);
 
         var items = grouped.Select(g =>
         {

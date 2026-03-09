@@ -75,8 +75,9 @@ body { background-color: #f8f9fa; display: flex; flex-direction: column; }
 .price-up, .price-up td { color: #dc3545 !important; }
 .price-down, .price-down td { color: #198754 !important; }
 .text-primary td { color: #0d6efd !important; }
+.text-danger td { color: #dc3545 !important; }
 
 /* 摘要卡片 */
 .summary-card { border-left: 4px solid #0d6efd; }
-.summary-card.positive { border-left-color: #dc3545; }
-.summary-card.negative { border-left-color: #198754; }
+.summary-card.positive { border-left-color: #0d6efd; }
+.summary-card.negative { border-left-color: #dc3545; }

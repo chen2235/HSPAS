@@ -24,11 +24,15 @@ HSPAS.registerPage('dashboard', async function () {
             document.getElementById('totalMarketValue').textContent = fmtMoney(data.totalMarketValue);
             document.getElementById('totalCost').textContent = fmtMoney(data.totalCost);
             const pnl = data.totalUnrealizedPnL;
-            document.getElementById('totalPnL').textContent = (pnl >= 0 ? '+' : '') + fmtMoney(pnl);
+            const pnlEl = document.getElementById('totalPnL');
+            pnlEl.textContent = (pnl >= 0 ? '+' : '') + fmtMoney(pnl);
+            pnlEl.className = pnl >= 1 ? 'text-primary' : 'text-danger';
             document.getElementById('pnlCard').classList.toggle('positive', pnl > 0);
             document.getElementById('pnlCard').classList.toggle('negative', pnl < 0);
             const ret = data.totalUnrealizedReturn;
-            document.getElementById('totalReturn').textContent = (ret >= 0 ? '+' : '') + (ret * 100).toFixed(2) + '%';
+            const retEl = document.getElementById('totalReturn');
+            retEl.textContent = (ret >= 0 ? '+' : '') + (ret * 100).toFixed(2) + '%';
+            retEl.className = (ret * 100) >= 1 ? 'text-primary' : 'text-danger';
             document.getElementById('returnCard').classList.toggle('positive', ret > 0);
             document.getElementById('returnCard').classList.toggle('negative', ret < 0);
 
