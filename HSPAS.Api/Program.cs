@@ -24,6 +24,7 @@ builder.Services.AddSingleton<ITechnicalIndicatorService, TechnicalIndicatorServ
 builder.Services.AddScoped<IMenuService, MenuService>();
 builder.Services.AddScoped<IQuarterHealthReportService, QuarterHealthReportService>();
 builder.Services.AddScoped<IHealthReportOcrService, HealthReportOcrService>();
+builder.Services.AddScoped<IElectricityBillService, ElectricityBillService>();
 
 // --- Controllers & Swagger ---
 builder.Services.AddControllers();

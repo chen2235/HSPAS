@@ -9,6 +9,12 @@ body { background-color: #f8f9fa; display: flex; flex-direction: column; }
     display: flex; align-items: center; padding: 0 20px; flex-shrink: 0;
     box-shadow: 0 1px 4px rgba(0,0,0,.2); z-index: 100;
 }
+#app-header .sidebar-toggle-btn {
+    background: none; border: none; color: #fff; font-size: 1.3rem;
+    cursor: pointer; padding: 4px 10px 4px 0; line-height: 1;
+    opacity: .8; transition: opacity .15s;
+}
+#app-header .sidebar-toggle-btn:hover { opacity: 1; }
 #app-header .brand { font-size: 1.15rem; font-weight: 700; letter-spacing: 1px; }
 #app-header .brand small { font-weight: 400; opacity: .7; font-size: .8rem; margin-left: 6px; }
 
@@ -52,6 +58,10 @@ body { background-color: #f8f9fa; display: flex; flex-direction: column; }
 #sidebar .sidebar-l2-children a.nav-link { padding-left: 46px; font-size: .82rem; }
 #sidebar .sidebar-l1-children.collapsed,
 #sidebar .sidebar-l2-children.collapsed { display: none; }
+
+/* Sidebar 隱藏/顯示 */
+#sidebar { transition: width .25s ease, min-width .25s ease, opacity .2s ease; }
+#sidebar.sidebar-hidden { width: 0; min-width: 0; overflow: hidden; opacity: 0; pointer-events: none; }
 
 /* Main content */
 #main-content {

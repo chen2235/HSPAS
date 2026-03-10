@@ -16,6 +16,7 @@ public class HspasDbContext : DbContext
     public DbSet<MenuFunction> MenuFunctions => Set<MenuFunction>();
     public DbSet<QuarterHealthReport> QuarterHealthReports => Set<QuarterHealthReport>();
     public DbSet<QuarterHealthReportDetail> QuarterHealthReportDetails => Set<QuarterHealthReportDetail>();
+    public DbSet<LifeElectricityBillPeriod> LifeElectricityBillPeriods => Set<LifeElectricityBillPeriod>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -83,5 +84,16 @@ public class HspasDbContext : DbContext
         modelBuilder.Entity<QuarterHealthReportDetail>()
             .Property(d => d.CreatedAt)
             .HasDefaultValueSql("SYSUTCDATETIME()");
+
+        // LifeElectricityBillPeriod
+        modelBuilder.Entity<LifeElectricityBillPeriod>()
+            .Property(e => e.CreateTime)
+            .HasDefaultValueSql("SYSUTCDATETIME()");
+
+        modelBuilder.Entity<LifeElectricityBillPeriod>()
+            .HasIndex(e => new { e.PowerNo, e.BillingEndDate });
+
+        modelBuilder.Entity<LifeElectricityBillPeriod>()
+            .HasIndex(e => new { e.PowerNo, e.ReadOrDebitDate });
     }
 }

@@ -4,6 +4,7 @@ using HSPAS.Api.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HSPAS.Api.Migrations
 {
     [DbContext(typeof(HspasDbContext))]
-    partial class HspasDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260309142709_AddLifeElectricityBillPeriod")]
+    partial class AddLifeElectricityBillPeriod
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -291,8 +294,8 @@ namespace HSPAS.Api.Migrations
                         .HasColumnType("date");
 
                     b.Property<string>("Remark")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int?>("SharedMeterHouseholdCount")
                         .HasColumnType("int");

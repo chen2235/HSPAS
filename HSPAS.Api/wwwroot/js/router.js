@@ -30,6 +30,8 @@
         'settings/menu-sorting': { html: '/pages/menu-sorting.html', js: ['/js/menu-sorting.js'] },
         'health/checkup/qtr/upload':    { html: '/pages/health-qtr-upload.html',    js: ['/js/health-qtr-upload.js'] },
         'health/checkup/qtr/dashboard': { html: '/pages/health-qtr-dashboard.html', js: ['/js/health-qtr-dashboard.js'] },
+        'life/utility/electricity/period-records': { html: '/pages/elec-period-records.html', js: ['/js/elec-period-records.js'] },
+        'life/utility/electricity/dashboard':      { html: '/pages/elec-dashboard.html',      js: ['/js/elec-dashboard.js'] },
     };
 
     // RouteUrl → 路由 hash 的對應（DB 中的 RouteUrl 轉成前端 hash）
@@ -48,6 +50,8 @@
         '/settings/menu-sorting': 'settings/menu-sorting',
         '/health/checkup/qtr/upload': 'health/checkup/qtr/upload',
         '/health/checkup/qtr/dashboard': 'health/checkup/qtr/dashboard',
+        '/life/utility/electricity/period-records': 'life/utility/electricity/period-records',
+        '/life/utility/electricity/dashboard': 'life/utility/electricity/dashboard',
     };
 
     // FuncCode → Bootstrap Icon 對應
@@ -75,12 +79,19 @@
         'LIFE_SIS': 'bi-people',
         'LIFE_SIS_RECORD': 'bi-journal-text',
         'LIFE_SIS_YEARLY_ANALYSIS': 'bi-bar-chart-steps',
+        'LIFE_UTILITY': 'bi-lightning-charge',
+        'LIFE_UTILITY_ELEC_PERIOD': 'bi-file-earmark-text',
+        'LIFE_UTILITY_ELEC_DASHBOARD': 'bi-speedometer',
+        'LIFE_UTILITY_WATER_PERIOD': 'bi-droplet',
+        'LIFE_UTILITY_WATER_DASH': 'bi-speedometer',
+        'LIFE_UTILITY_GAS_PERIOD': 'bi-fire',
+        'LIFE_UTILITY_GAS_DASH': 'bi-speedometer',
         'ADMIN_ROOT': 'bi-gear-wide-connected',
         'ADMIN_FUNC': 'bi-menu-button-wide',
         'ADMIN_MENU_SORT': 'bi-list-nested',
     };
 
-    // 已載入的 script URL set（避免重複載入）
+    // 已載入的 script URL set
     const loadedScripts = new Set();
 
     // ===== Sidebar 動態載入 =====
@@ -266,24 +277,28 @@
             return;
         }
 
-        // 載入 JS（只載入一次）
+        // 載入 JS（首次載入 script，後續切頁只呼叫 init）
         for (const src of route.js) {
             if (!loadedScripts.has(src)) {
+                // 首次載入時移除舊 script 標籤（避免快取舊版）
+                document.querySelectorAll(`script[data-page-src="${src}"]`).forEach(s => s.remove());
                 await loadScript(src);
                 loadedScripts.add(src);
             }
         }
 
-        // 呼叫頁面 init（每次切頁都要重新 init）
+        // 呼叫頁面 init（每次切頁都會重新 init）
         if (pages[hash]) {
-            pages[hash](query);
+            await pages[hash](query);
         }
     }
 
     function loadScript(src) {
         return new Promise((resolve, reject) => {
             const s = document.createElement('script');
-            s.src = src;
+            // 加上時間戳避免瀏覽器快取舊版 JS
+            s.src = src + '?v=' + Date.now();
+            s.setAttribute('data-page-src', src);
             s.onload = resolve;
             s.onerror = () => {
                 console.warn('Script not found:', src);
@@ -292,6 +307,27 @@
             document.body.appendChild(s);
         });
     }
+
+    // Sidebar toggle
+    const toggleBtn = document.getElementById('sidebarToggle');
+    const toggleIcon = toggleBtn.querySelector('i');
+    const sidebarHiddenKey = 'hspas_sidebar_hidden';
+
+    function applySidebarState(hidden) {
+        sidebar.classList.toggle('sidebar-hidden', hidden);
+        toggleIcon.classList.toggle('bi-list', !hidden);
+        toggleIcon.classList.toggle('bi-layout-sidebar-inset', hidden);
+        toggleBtn.title = hidden ? '顯示選單' : '隱藏選單';
+    }
+
+    // Restore saved preference
+    applySidebarState(localStorage.getItem(sidebarHiddenKey) === '1');
+
+    toggleBtn.addEventListener('click', () => {
+        const willHide = !sidebar.classList.contains('sidebar-hidden');
+        applySidebarState(willHide);
+        localStorage.setItem(sidebarHiddenKey, willHide ? '1' : '0');
+    });
 
     // 初始化：先載入 sidebar，再導航到當前頁面
     loadSidebar().then(() => {

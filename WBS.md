@@ -20,6 +20,9 @@
 | 8.0 | 2026-03-08 | 新增「上櫃（OTC）行情資料」：TPEx 上櫃盤後 CSV 抓取（§4.6-4.8）、MarketType 欄位（§2.15）、雙來源回補 TSE+OTC（§7.8）、前端市場別顯示（§6.8） |
 | 9.0 | 2026-03-08 | 重構回補為「單日模式」：移除 BackfillService 區間批次，新增 IDailyPriceService.BackfillOneDayAsync（先刪後插）、API 改為單一日期、前端簡化為單日選擇器（§7.8-7.11） |
 | 10.0 | 2026-03-08 | 新增「每三個月健檢報告」模組：Tesseract OCR 影像辨識（eng+chi_tra 雙語、四方向旋轉偵測、逐行解析+數值範圍驗證）、QuarterHealthReport/Detail 資料表、上傳+手動輸入+儀表板前端、趨勢圖+比較卡片（§16） |
+| 11.0 | 2026-03-09 | Bug fix：總市值計算改為每檔各自取最新收盤價（與明細一致）；損益顏色規則調整（藍=賺/紅=賠，三段式明細顏色）；WBS 新增生活計帳-每期水電費瓦斯紀錄（§17B, skill §18） |
+| 12.0 | 2026-03-09 | 完成「每期電費紀錄」模組：台電 PDF 帳單解析（PdfPig + 全形正規化 + 民國日期轉換）、CRUD API、每期紀錄前端、電費儀表板前端、重複上傳偵測（同電號+計費結束日更新）、LIFE_UTILITY 選單種子資料（§17B.1-17B.2） |
+| 13.0 | 2026-03-10 | 電費儀表板同期比較分析（YoY 雙年度疊加圖+比較明細表+合計列）、Sidebar 隱藏/顯示切換（含 localStorage 記憶）、備註欄位擴充至 500 字（textarea+字數計數+明細 Modal 可編輯備註+儀表板/比較表顯示備註）（§17B.2, §3B, §17B.1） |
 
 ---
 
@@ -49,7 +52,7 @@
 - [x] 2.11 建立 `MenuFunction` 資料表（Id, ParentId, Level, FuncCode, DisplayName, RouteUrl, SortOrder, IsActive, Remark, CreateTime）
 - [x] 2.12 `MenuFunction` 初始資料 — 股票損益紀錄（STOCK_ROOT → STOCK_ANALYSIS → 11 個 Level 3 功能）
 - [x] 2.13 `MenuFunction` 初始資料 — 健康管理紀錄（HEALTH_ROOT → HEALTH_CHECKUP → 4 個 Level 3 功能）
-- [x] 2.14 `MenuFunction` 初始資料 — 生活計帳（LIFE_ROOT → LIFE_SIS → 2 個 Level 3 功能）
+- [x] 2.14 `MenuFunction` 初始資料 — 生活計帳（LIFE_ROOT → LIFE_SIS → 2 個 Level 3 功能；LIFE_UTILITY → 6 個 Level 3 功能）
 - [x] 2.15 `DailyStockPrice` 新增 `MarketType` 欄位（nvarchar(5), 預設 "TSE"，區分上市/上櫃）
 
 ---
@@ -82,6 +85,7 @@
 - [x] 3.10 `POST /api/menu/reorder` — 接收拖拉排序結果，驗證階層合法性（L1 ParentId=NULL, L2→L1, L3→L2, SortOrder>0），批次更新 DB
 - [x] 3.11 前端 Sidebar 改為 API 驅動：`router.js` 新增 `loadSidebar()` 呼叫 `/api/menu/tree` 動態渲染三層可展開/收合選單（含 fallback 靜態選單）
 - [x] 3.12 前端 `/settings/menu-sorting` 頁面：拖拉排序 UI（HTML5 Drag & Drop）+ 節點資訊面板 + 儲存按鈕呼叫 `/api/menu/reorder`
+- [x] 3.13 Sidebar 隱藏/顯示切換：Header 左側新增 toggle icon（`bi-list` ↔ `bi-layout-sidebar-inset`），CSS transition 動畫（width 0 + opacity fade），localStorage 記憶偏好（`hspas_sidebar_hidden`）
 
 ---
 
@@ -223,7 +227,7 @@
 - [x] 12.2 實作市值與比例計算（MarketValue、WeightRatio）
 - [x] 12.3 `GET /api/dashboard/holdings` — 持股總覽 API
 - [x] 12.4 前端 `/dashboard` 頁面框架
-- [x] 12.5 前端總市值、總成本、整體未實現損益摘要區
+- [x] 12.5 前端總市值、總成本、整體未實現損益摘要區（未實現損益/報酬率：>=1 藍色+號、<1 紅色；卡片邊框同步）
 - [x] 12.6 前端持股比例圓餅圖 / donut chart
 - [x] 12.7 前端持股明細表格（股數、市值、比例），標題列可排序，預設市值降序
 
@@ -238,13 +242,14 @@
 
 ## 13. 平均成本與未實現損益（skill ch15）
 
-- [x] 13.1 實作單檔未實現損益計算服務（AvgCost、MarketValue、UnrealizedPnL、UnrealizedReturn）
+- [x] 13.1 實作單檔未實現損益計算服務（AvgCost、MarketValue、UnrealizedPnL、UnrealizedReturn）— 總市值已修正為每檔各自取最新收盤價
 - [x] 13.2 `GET /api/portfolio/stock/{stockId}/unrealized` — 單檔未實現損益 API
 - [x] 13.3 `GET /api/portfolio/unrealized-summary` — 整體組合未實現損益摘要 API
 - [x] 13.4 前端 `/pnl` 損益與成本查詢頁面
   - [x] 13.4.1 進入時自動載入所有持股損益明細
   - [x] 13.4.2 標題列可排序（代號、名稱、持股、平均成本、現價、總成本、市值、未實現損益、報酬率），預設報酬率降序
-  - [x] 13.4.3 報酬率整列顏色：≤0% 紅色、≥70% 藍色
+  - [x] 13.4.3 報酬率整列顏色：≥100% 藍色、≥1%且<100% 黑色、≤0% 紅色
+  - [x] 13.4.5 整體摘要未實現損益/報酬率：>=1 加「+」符號、藍色字；<1 紅色字
   - [x] 13.4.4 每檔持股「詳細」按鈕以 target="_blank" 另開新視窗至個股走勢頁
 - [x] 13.5 前端 `/stock/{stockId}` 與 `/etf/{etfId}` 顯示平均成本、現價、未實現損益
 - [x] 13.6 前端 `/dashboard` 顯示整體組合未實現損益摘要
@@ -335,13 +340,51 @@
 
 ---
 
-## 17. 生活計帳模組（skill §2 — 未來功能）
+## 17. 生活計帳模組（skill §2, §18）
 
-> Level 1: LIFE_ROOT → Level 2: LIFE_SIS → Level 3 功能頁
+> Level 1: LIFE_ROOT → Level 2: LIFE_SIS / LIFE_UTILITY → Level 3 功能頁
+
+### 17A. 妹妹紀錄（未來功能）
 
 - [ ] 17.1 妹妹紀錄資料表設計（收支與事件紀錄）
 - [ ] 17.2 妹妹紀錄維護 API 與前端 `/life/sister/records`
 - [ ] 17.3 妹妹紀錄年度分析 API 與前端 `/life/sister/yearly-analysis`
+
+### 17B. 每期水電費瓦斯紀錄（skill §18）
+
+#### 17B.1 每期電費紀錄
+
+- [x] 17.4 建立電費紀錄資料表 `Life_ElectricityBillPeriod`（21 欄位：Address, PowerNo, BlackoutGroup, BillingStartDate/EndDate, BillingDays, ReadOrDebitDate, Kwh, KwhPerDay, AvgPricePerKwh, TotalAmount, InvoiceAmount, TariffType, SharedMeterHouseholdCount, InvoicePeriod, InvoiceNo, RawDetailJson, Remark, CreateTime, UpdateTime）
+- [x] 17.5 EF Core Entity + DbContext 配置（複合索引 PowerNo+BillingEndDate、PowerNo+ReadOrDebitDate）+ Migration `AddLifeElectricityBillPeriod` + `SeedLifeUtilityMenu`
+- [x] 17.6 後端 PDF 解析服務 `TaipowerBillParserService`：UglyToad.PdfPig 解密 + 全形正規化 + 民國日期轉換 + 18 欄位 Regex 抽取（地址含樓層、雙日期抄表日解析、電價種類+時間種類組合、逐項費用明細 JSON）
+- [x] 17.7 `POST /api/life/utility/electricity/upload` — 上傳台電 PDF 帳單解析+儲存 API（含重複偵測：同電號+計費結束日自動更新）
+- [x] 17.8 `GET /api/life/utility/electricity/period-records` — 電費紀錄列表 API（支援 year/month 篩選）
+- [x] 17.9 `GET /api/life/utility/electricity/period-records/{id}` — 單筆電費紀錄明細 API
+- [x] 17.10 `PUT /api/life/utility/electricity/period-records/{id}` — 修改電費紀錄 API
+- [x] 17.11 `DELETE /api/life/utility/electricity/period-records/{id}` — 刪除電費紀錄 API
+- [x] 17.12 前端 `/life/utility/electricity/period-records` 頁面：PDF 上傳（含 spinner）、年/月篩選、紀錄列表（明細 Modal / 修改 Modal / 刪除確認）、電費明細項目表格
+- [x] 17.12a 備註欄位擴充：Entity `Remark` MaxLength 200→500 + Migration `ExpandRemarkTo500`
+- [x] 17.12b 紀錄列表新增「備註」欄位（超過 20 字截斷+hover tooltip 顯示完整內容）
+- [x] 17.12c 明細 Modal 新增可編輯備註區塊：textarea（4行, maxlength=500）+ 即時字數計數（n/500）+「儲存備註」按鈕（呼叫 PUT API 單獨存備註）
+- [x] 17.12d 修改 Modal / 上傳確認區備註改為 textarea（4行, maxlength=500）+ 即時字數計數
+
+#### 17B.2 每期電費儀表板
+
+- [x] 17.13 `GET /api/life/utility/electricity/dashboard?year=` — 電費儀表板資料 API（依 BillingEndDate 月份分組，回傳 kwhTotal / amountTotal / billCount / remarks[]）
+- [x] 17.14 前端 `/life/utility/electricity/dashboard` 頁面：年份篩選、年度摘要卡片（總度數/總金額/帳單數）、Chart.js 雙軸圖（柱狀=度數+折線=金額）、月份明細表格（含備註欄）
+- [x] 17.15a 同期比較分析：前端同時呼叫選定年+前一年 dashboard API（Promise.all），YoY 摘要卡片 ×4（用電量 YoY%、電費 YoY%、用電量差異、電費差異，紅=增加/綠=減少）
+- [x] 17.15b 同期比較圖表：Chart.js 雙年度疊加（實心柱狀=今年度數 vs 透明柱狀=去年度數，實線=今年金額 vs 虛線=去年金額），tooltip 顯示逐月 YoY%
+- [x] 17.15c 同期比較明細表：逐月對比（今年/去年 度數+金額 + 差異 + YoY%，紅/綠色標示）+ 合計列（`table-secondary fw-bold`，各年度總度數/總金額/總差異/總 YoY%）+ 備註欄（合併兩年備註，超過 30 字截斷+tooltip）
+
+#### 17B.3 每期水費紀錄 / 儀表板（預留）
+
+- [ ] 17.16 每期水費紀錄 API 與前端 `/life/utility/water/period-records`（待補規格）
+- [ ] 17.17 每期水費儀表板前端 `/life/utility/water/dashboard`（待補規格）
+
+#### 17B.4 每期瓦斯紀錄 / 儀表板（預留）
+
+- [ ] 17.18 每期瓦斯紀錄 API 與前端 `/life/utility/gas/period-records`（待補規格）
+- [ ] 17.19 每期瓦斯儀表板前端 `/life/utility/gas/dashboard`（待補規格）
 
 ---
 
@@ -455,7 +498,9 @@ publish\
     │   ├── settings.js
     │   ├── menu-sorting.js
     │   ├── health-qtr-upload.js              ← 健檢報告上傳（OCR 辨識 + 手動輸入）
-    │   └── health-qtr-dashboard.js           ← 健檢報告儀表板（趨勢圖 + 比較）
+    │   ├── health-qtr-dashboard.js           ← 健檢報告儀表板（趨勢圖 + 比較）
+    │   ├── elec-period-records.js            ← 每期電費紀錄（PDF 上傳 + CRUD）
+    │   └── elec-dashboard.js                 ← 電費儀表板（雙軸圖 + 月份表格）
     └── pages\                                ← HTML 頁面片段
         ├── dashboard.html
         ├── calendar.html
@@ -470,7 +515,9 @@ publish\
         ├── settings.html
         ├── menu-sorting.html
         ├── health-qtr-upload.html            ← 健檢報告上傳頁面
-        └── health-qtr-dashboard.html         ← 健檢報告儀表板頁面
+        ├── health-qtr-dashboard.html         ← 健檢報告儀表板頁面
+        ├── elec-period-records.html          ← 每期電費紀錄頁面
+        └── elec-dashboard.html               ← 電費儀表板頁面
 ```
 
 > **簡易做法**：直接將 `publish\` 資料夾內的所有內容完整複製到 IIS 網站目錄即可。

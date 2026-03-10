@@ -1,0 +1,150 @@
+<div class="container-fluid">
+    <h4 class="mb-3">每期電費儀表板</h4>
+    <div id="elecDashMsg"></div>
+
+    <!-- 篩選 -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">年份</label>
+                    <select id="dashYear" class="form-select"></select>
+                </div>
+                <div class="col-md-3">
+                    <button id="btnDashSearch" class="btn btn-outline-primary">查詢</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 年度摘要 -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">年度總用電</h6>
+                    <h4 id="yearKwhTotal">--</h4>
+                    <small class="text-muted">度 (kWh)</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">年度總金額</h6>
+                    <h4 id="yearAmountTotal">--</h4>
+                    <small class="text-muted">元 (NT$)</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">帳單筆數</h6>
+                    <h4 id="yearBillCount">--</h4>
+                    <small class="text-muted">筆</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 圖表 -->
+    <div class="card mb-3">
+        <div class="card-header">月度用電與金額趨勢</div>
+        <div class="card-body">
+            <canvas id="elecChart" height="100"></canvas>
+        </div>
+    </div>
+
+    <!-- 同期比較分析 -->
+    <div class="card mb-3">
+        <div class="card-header">
+            同期比較分析
+            <span id="compareTitle" class="text-muted ms-2"></span>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <div class="card text-center border-primary">
+                        <div class="card-body py-2">
+                            <small class="text-muted">用電量 YoY</small>
+                            <h5 id="yoyKwh" class="mb-0">--</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center border-primary">
+                        <div class="card-body py-2">
+                            <small class="text-muted">電費 YoY</small>
+                            <h5 id="yoyAmount" class="mb-0">--</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center border-info">
+                        <div class="card-body py-2">
+                            <small class="text-muted">用電量差異</small>
+                            <h5 id="diffKwh" class="mb-0">--</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center border-info">
+                        <div class="card-body py-2">
+                            <small class="text-muted">電費差異</small>
+                            <h5 id="diffAmount" class="mb-0">--</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <canvas id="compareChart" height="100"></canvas>
+        </div>
+    </div>
+
+    <!-- 同期比較明細表 -->
+    <div class="card mb-3">
+        <div class="card-header">同期比較明細</div>
+        <div class="card-body table-responsive">
+            <table class="table table-hover table-sm">
+                <thead>
+                    <tr>
+                        <th>月份</th>
+                        <th class="text-end" id="thCurrKwh">今年度數</th>
+                        <th class="text-end" id="thPrevKwh">去年度數</th>
+                        <th class="text-end">度數差異</th>
+                        <th class="text-end">度數 YoY</th>
+                        <th class="text-end" id="thCurrAmt">今年金額</th>
+                        <th class="text-end" id="thPrevAmt">去年金額</th>
+                        <th class="text-end">金額差異</th>
+                        <th class="text-end">金額 YoY</th>
+                        <th>備註</th>
+                    </tr>
+                </thead>
+                <tbody id="compareBody">
+                    <tr><td colspan="10" class="text-center text-muted">查詢後自動載入</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 月度明細表 -->
+    <div class="card">
+        <div class="card-header">月度明細</div>
+        <div class="card-body table-responsive">
+            <table class="table table-hover table-sm">
+                <thead>
+                    <tr>
+                        <th>月份</th>
+                        <th class="text-end">計費度數合計</th>
+                        <th class="text-end">繳費總金額合計</th>
+                        <th class="text-end">帳單筆數</th>
+                        <th>備註</th>
+                    </tr>
+                </thead>
+                <tbody id="dashBody">
+                    <tr><td colspan="5" class="text-center text-muted">請選擇年份後查詢</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
