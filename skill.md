@@ -368,8 +368,8 @@ INSERT INTO [dbo].[MenuFunction] ([ParentId], [Level], [FuncCode], [DisplayName]
 VALUES
 (@LIFE_UTILITY_ID, 3, 'LIFE_UTILITY_ELEC_PERIOD',    N'每期電費紀錄',           N'/life/utility/electricity/period-records',  1, 1, N'台電電費帳單匯入與維護'),
 (@LIFE_UTILITY_ID, 3, 'LIFE_UTILITY_ELEC_DASHBOARD', N'每期電費儀表板',         N'/life/utility/electricity/dashboard',      2, 1, N'電費年度/月份用電與金額儀表板'),
-(@LIFE_UTILITY_ID, 3, 'LIFE_UTILITY_WATER_PERIOD',   N'每期水費紀錄（預留）',   NULL,                                        3, 1, N'自來水帳單紀錄，待補規格'),
-(@LIFE_UTILITY_ID, 3, 'LIFE_UTILITY_WATER_DASH',     N'每期水費儀表板（預留）', NULL,                                        4, 1, N'水費儀表板，待補規格'),
+(@LIFE_UTILITY_ID, 3, 'LIFE_UTILITY_WATER_PERIOD',   N'每期水費紀錄',           N'/life/utility/water/period-records',       3, 1, N'自來水水費帳單匯入與維護'),
+(@LIFE_UTILITY_ID, 3, 'LIFE_UTILITY_WATER_DASH',     N'每期水費儀表板',         N'/life/utility/water/dashboard',            4, 1, N'水費年度/期別用水與金額儀表板'),
 (@LIFE_UTILITY_ID, 3, 'LIFE_UTILITY_GAS_PERIOD',     N'每期瓦斯紀錄（預留）',   NULL,                                        5, 1, N'瓦斯帳單紀錄，待補規格'),
 (@LIFE_UTILITY_ID, 3, 'LIFE_UTILITY_GAS_DASH',       N'每期瓦斯儀表板（預留）', NULL,                                        6, 1, N'瓦斯儀表板，待補規格');
 GO
@@ -513,82 +513,163 @@ Content-Type: application/json
 
 ## 4. 個人買賣股票紀錄功能（一般交易）
 
-> 本章節為股票損益紀錄主功能（STOCK_ROOT）下的一部分。
-
 ### 4.1 目標
 
-- 紀錄所有「一次性買進／賣出」台股股票與 ETF 的交易明細（含手續費、交易稅）。
-- 搭配每日行情，計算：
-    - 單筆交易已實現損益
-    - 個股整體持有成本、未實現損益
-    - 整體投資組合損益與報酬率
-
+- 紀錄所有「一次性買進／賣出」台股股票與 ETF 的交易明細（含手續費、交易稅）。  
+- 搭配每日行情，計算：  
+  - 單筆交易已實現損益  
+  - 個股整體持有成本、未實現損益  
+  - 整體投資組合損益與報酬率  
 
 ### 4.2 資料庫：TradeRecord（一般交易紀錄）
 
-- Table: `TradeRecord`
+- Table: `TradeRecord`  
 
-欄位（Column）：
+欄位（Column）：  
 
-- `Id` bigint, PK, identity
-- `TradeDate` date, NOT NULL
-- `StockId` varchar(10), NOT NULL
-- `StockName` nvarchar(50), NOT NULL
-- `Action` varchar(10), NOT NULL  // `BUY` / `SELL` / `DIVIDEND`
-- `Quantity` int, NOT NULL
-- `Price` decimal(19,4), NOT NULL
-- `Fee` decimal(19,4), NOT NULL
-- `Tax` decimal(19,4), NOT NULL
-- `OtherCost` decimal(19,4), NULL
-- `NetAmount` decimal(19,4), NOT NULL  // 買進負值、賣出正值
-- `Note` nvarchar(200), NULL
-- `CreateTime` datetime2, NOT NULL
-
+- `Id` bigint, PK, identity  
+- `TradeDate` date, NOT NULL  
+- `StockId` varchar(10), NOT NULL  
+- `StockName` nvarchar(50), NOT NULL  
+- `Action` varchar(10), NOT NULL  // `BUY` / `SELL` / `DIVIDEND`  
+- `Quantity` int, NOT NULL  
+- `Price` decimal(19,4), NOT NULL  
+- `Fee` decimal(19,4), NOT NULL  
+- `Tax` decimal(19,4), NOT NULL  
+- `OtherCost` decimal(19,4), NULL  
+- `NetAmount` decimal(19,4), NOT NULL  // 買進負值、賣出正值  
+- `Note` nvarchar(200), NULL  
+- `CreateTime` datetime2, NOT NULL  
 
 ### 4.3 個股持有與損益計算（邏輯）
 
-- 目前持股股數 `CurrentQty`：
-    - 所有 BUY + DCA 買入 − SELL。
-- 總投入成本（簡化）：
-    - `TotalBuyAmount = Σ(所有買入的 (Price * Quantity + Fee + Tax + OtherCost))`。
-- 平均成本：
-    - `AvgCost = TotalBuyAmount ÷ CurrentQty`（CurrentQty > 0）。
-- 已實現損益：
-    - 所有 SELL 的 `NetAmount` 加總 + `DIVIDEND` 股利。
-- 未實現損益與報酬率：見第 15 章。
-
+- 目前持股股數 `CurrentQty`：  
+  - 所有 BUY + DCA 買入 − SELL。  
+- 總投入成本（簡化）：  
+  - `TotalBuyAmount = Σ(所有買入的 (Price * Quantity + Fee + Tax + OtherCost))`。  
+- 平均成本：  
+  - `AvgCost = TotalBuyAmount ÷ CurrentQty`（CurrentQty > 0）。  
+- 已實現損益：  
+  - 所有 SELL 的 `NetAmount` 加總 + `DIVIDEND` 股利。  
+- 未實現損益與報酬率：見第 14 章。  
 
 ### 4.4 交易紀錄 API
 
-- `POST /api/trades`
-- `GET /api/trades/{stockId}?from=YYYY-MM-DD&to=YYYY-MM-DD`
-- `GET /api/portfolio/summary`（可選）
+- `POST /api/trades`  
+- `GET /api/trades/{stockId}?from=YYYY-MM-DD&to=YYYY-MM-DD`  
+- `GET /api/portfolio/summary`（可選）  
 
 ---
 
-### 4.5 交易紀錄管理：上傳國泰證日對帳單並自動帶入交易明細
+## 5. 定期定額買入紀錄功能（存股／定期定額）
 
-（內容同你原 skill.md，已經整理過，這裡不重複展開；可以沿用原來版本。）
+### 5.1 目標
+
+- 紀錄「定期定額買入」的約定與實際執行結果：  
+  - 約定（DcaPlan）：標的、週期、金額、起訖日。  
+  - 執行（DcaExecution）：每次扣款與成交紀錄。  
+- 分析定期定額計畫的累積投入、持有成本與績效。  
+
+### 5.2 資料庫：DcaPlan
+
+- Table: `DcaPlan`  
+
+欄位：  
+
+- `Id` bigint, PK, identity  
+- `PlanName` nvarchar(100), NOT NULL  
+- `StockId` varchar(10), NOT NULL  
+- `StockName` nvarchar(50), NOT NULL  
+- `StartDate` date, NOT NULL  
+- `EndDate` date, NULL  
+- `CycleType` varchar(20), NOT NULL  // `MONTHLY` / `WEEKLY`  
+- `CycleDay` int, NOT NULL  
+- `Amount` decimal(19,4), NOT NULL  
+- `IsActive` bit, NOT NULL  
+- `Note` nvarchar(200), NULL  
+- `CreateTime` datetime2, NOT NULL  
+
+### 5.3 資料庫：DcaExecution
+
+- Table: `DcaExecution`  
+
+欄位：  
+
+- `Id` bigint, PK, identity  
+- `PlanId` bigint, FK → `DcaPlan.Id`, NOT NULL  
+- `TradeDate` date, NOT NULL  
+- `StockId` varchar(10), NOT NULL  
+- `Quantity` int, NOT NULL  
+- `Price` decimal(19,4), NOT NULL  
+- `Fee` decimal(19,4), NOT NULL  
+- `Tax` decimal(19,4), NOT NULL  
+- `OtherCost` decimal(19,4), NULL  
+- `NetAmount` decimal(19,4), NOT NULL  
+- `Status` varchar(20), NOT NULL  // `SUCCESS` / `FAILED` / `PARTIAL`  
+- `Note` nvarchar(200), NULL  
+- `CreateTime` datetime2, NOT NULL  
+
+> 建議：每次 DCA 成功執行時，同步在 `TradeRecord` 加一筆 BUY 紀錄，方便統一用 `TradeRecord` 計算整體損益。  
+
+### 5.4 API
+
+- `POST /api/dca/plans`  
+- `PUT /api/dca/plans/{id}`  
+- `GET /api/dca/plans`  
+- `GET /api/dca/plans/{id}`  
+- `GET /api/dca/plans/{id}/executions`  
+
+### 5.5 定期定額績效計算
+
+- 累積投入：`Σ |NetAmount|`。  
+- 累積股數：`Σ Quantity`。  
+- 平均成本：`AvgCost = 累積投入 ÷ 累積股數`。  
+- 目前市值與未實現損益：同第 14 章邏輯。  
 
 ---
 
-## 5. 定期定額紀錄功能（DCA）
+## 6. 資料來源：TWSE 盤後資料
 
-（沿用原 skill.md：`DcaPlan`、`DcaExecution`、相關 API。）
+### 6.1 資料集與授權
+
+- 資料集：盤後資訊 > 個股日成交資訊（上市個股日成交資訊）。  
+- 平台：政府資料開放平臺 data.gov.tw。  
+- 更新頻率：每個交易日盤後更新一次。  
+- 授權：政府資料開放授權條款第 1 版。  
+
+### 6.2 主要 API 端點
+
+- 全市場當日盤後資料（CSV）：  
+  - `https://www.twse.com.tw/exchangeReport/STOCK_DAY_ALL?response=open_data`  
+  - 欄位：證券代號、證券名稱、成交股數、成交金額、開盤價、最高價、最低價、收盤價、漲跌價差、成交筆數。  
+
+> 歷史資料：實作時從 data.gov.tw 或 TWSE 歷史下載頁取得，並餵給「歷史回補工具」。  
 
 ---
 
-## 6. TWSE 每日行情資料抓取
+## 7. 資料庫：每日行情資料
 
-（沿用原 skill.md。）
+### 7.1 DailyStockPrice
+
+- Table: `DailyStockPrice`  
+
+欄位：  
+
+- `TradeDate` date, PK(1)  
+- `StockId` varchar(10), PK(2)  
+- `StockName` nvarchar(50), NOT NULL  
+- `TradeVolume` bigint, NULL  
+- `TradeValue` decimal(19,4), NULL  
+- `OpenPrice` decimal(19,4), NULL  
+- `HighPrice` decimal(19,4), NULL  
+- `LowPrice` decimal(19,4), NULL  
+- `ClosePrice` decimal(19,4), NULL  
+- `PriceChange` decimal(19,4), NULL  
+- `Transaction` int, NULL  
+- `CreateTime` datetime2, NOT NULL  
 
 ---
 
-## 7. 每日行情資料表：DailyStockPrice
-
-（沿用原 skill.md。）
-
----
 
 ## 8. 系統架構與實作建議
 
@@ -598,23 +679,48 @@ Content-Type: application/json
 
 ---
 
-## 9. Web API – 行情與交易
+## 9. Web API：每日行情相關
 
-（沿用原 skill.md 中的 calendar、daily-prices、history-backfill 等 API 定義。）
+### 9.1 可用日期清單
+
+`GET /api/calendar/available-dates`  
+
+### 9.2 取得指定日期全市場行情
+
+`GET /api/daily-prices/by-date?date=YYYY-MM-DD`  
+
+### 9.3 取得個股歷史價量
+
+`GET /api/daily-prices/{stockId}/history?from=YYYY-MM-DD&to=YYYY-MM-DD`  
+
+---
+
+## 10. 前端：日曆查詢畫面
+
+### 10.1 `/calendar`
+
+- 載入 `/api/calendar/available-dates`。  
+- 點日期時呼叫 `/api/daily-prices/by-date`。  
+- 顯示行情表格，支援搜尋、排序。  
+- 點代號跳 `/stock/{stockId}`。  
 
 ---
 
-## 10. 日曆行情查詢（/calendar）
+## 11. 管理者「歷史回補工具」
 
-（沿用原 skill.md。）
+### 11.1 API
 
----
+`POST /api/history/backfill`  
 
-## 11. 歷史資料回補（/admin/history-backfill）
+Body:  
 
-（沿用原 skill.md。）
-
----
+```json
+{
+  "from": "YYYY-MM-DD",
+  "to": "YYYY-MM-DD",
+  "dryRun": false
+}
+```
 
 ## 12. ETF 擴充
 
@@ -721,15 +827,65 @@ Content-Type: application/json
         - 列出每月合計度數與金額，並可展開查看各期帳單與連回「每期電費紀錄」。
 
 
-### 18.4 每期水費紀錄 / 每期水費儀表板（預留）
+### 18.4 每期水費紀錄 / 每期水費儀表板
 
-- 功能與「每期電費紀錄／儀表板」類似，解析欄位與圖表設計將依自來水公司帳單格式補充。
+- 目的：紀錄臺北自來水事業處之每期水費電子通知單，支援從 PDF 自動解析匯入，並可由使用者進行必要調整。
+- 資料來源：使用者上傳水費電子通知單 PDF（以固定密碼解密後解析）。
 
+固定欄位（用水基本資料）：
 
-### 18.5 每期瓦斯紀錄 / 每期瓦斯儀表板（預留）
+- 用水地址：新北市汐止區福山街60巷12號四樓
+- 用水號碼：K-22-020975-0
+- 水表號碼：C108015226
 
-- 功能與「每期電費紀錄／儀表板」類似，解析欄位與圖表設計將依瓦斯公司帳單格式補充。
+解析欄位（每期水費資料）：
 
+- 用水計費期間（起始日、結束日、天數）
+- 總用水度數（TotalUsage）
+- 本期用水度數（CurrentUsage）
+- 本期指針（CurrentMeterReading）
+- 上期指針（PreviousMeterReading）
+- 應繳總金額（TotalAmount）
+
+操作說明：
+
+- 「明細」：
+  - 顯示固定欄位 + 解析欄位，以及未來若有的細項明細（例如水費、污水處理費等）。
+- 「修改」：
+  - 可調整以下欄位：
+    - 用水計費期間（起始日、結束日）
+    - 總用水度數
+    - 本期用水度數
+    - 本期指針
+    - 上期指針
+    - 應繳總金額
+
+### 18.5 每期水費儀表板
+
+- 目的：依「年」與各水費期別，呈現每期水費的總用水度數與應繳總金額，觀察年度水費與用水量變化。
+- 篩選條件：
+  - 年（必填）。
+  - 用水號碼（未來支援多用水戶時使用）。
+
+指標：
+
+- 總用水度數（TotalUsage；如為空則使用本期用水度數 CurrentUsage）。
+- 應繳總金額（TotalAmount）。
+
+呈現方式：
+
+- 圖表：
+  - X 軸：各用水期別（依計費結束日排序）。
+  - Y 軸：
+    - 左側：總用水度數（柱狀圖）。
+    - 右側：應繳總金額（折線圖）。
+- 表格：
+  - 每期列出：
+    - 用水計費期間。
+    - 總用水度數。
+    - 應繳總金額。
+  - 每列提供「明細」連結回到「每期水費紀錄」畫面。
+```
 ---
 
 ## 19. 實作指引（給開發者／開發 AI）

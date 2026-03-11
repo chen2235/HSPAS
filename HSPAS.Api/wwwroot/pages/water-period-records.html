@@ -1,0 +1,148 @@
+<div class="container-fluid">
+    <h4 class="mb-3">每期水費紀錄</h4>
+    <div id="waterMsg"></div>
+
+    <!-- 上傳區塊 -->
+    <div class="card mb-3">
+        <div class="card-header">上傳水費 PDF</div>
+        <div class="card-body">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label">選擇 PDF 檔案</label>
+                    <input type="file" id="waterPdfFile" class="form-control" accept=".pdf">
+                </div>
+                <div class="col-md-3">
+                    <button id="btnUploadWater" class="btn btn-primary">
+                        <span id="uploadSpinner" class="spinner-border spinner-border-sm d-none me-1"></span>
+                        上傳並解析
+                    </button>
+                </div>
+            </div>
+            <small class="text-muted">密碼已內建，直接上傳即可。上傳後會顯示解析結果供您確認。</small>
+        </div>
+    </div>
+
+    <!-- 解析結果確認區塊 -->
+    <div class="card mb-3 d-none" id="confirmCard">
+        <div class="card-header bg-warning-subtle">
+            PDF 解析結果 — 請確認以下資料，修改後按「確認儲存」
+        </div>
+        <div class="card-body">
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <h6>計費資訊</h6>
+                    <div class="row g-2">
+                        <div class="col-6 mb-2"><label class="form-label">計費起始日</label><input type="date" id="cfmStartDate" class="form-control"></div>
+                        <div class="col-6 mb-2"><label class="form-label">計費結束日</label><input type="date" id="cfmEndDate" class="form-control"></div>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6 mb-2"><label class="form-label">計費天數</label><input type="number" id="cfmDays" class="form-control"></div>
+                        <div class="col-6 mb-2"><label class="form-label">應繳總金額</label><input type="number" id="cfmTotalAmount" class="form-control" step="0.01"></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h6>用水資訊</h6>
+                    <div class="row g-2">
+                        <div class="col-6 mb-2"><label class="form-label">總用水度數</label><input type="number" id="cfmTotalUsage" class="form-control"></div>
+                        <div class="col-6 mb-2"><label class="form-label">本期用水度數</label><input type="number" id="cfmCurrentUsage" class="form-control"></div>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6 mb-2"><label class="form-label">本期指針</label><input type="number" id="cfmCurrentReading" class="form-control"></div>
+                        <div class="col-6 mb-2"><label class="form-label">上期指針</label><input type="number" id="cfmPreviousReading" class="form-control"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <h6>費用明細</h6>
+                    <div id="cfmDetailItems" class="small"></div>
+                </div>
+            </div>
+            <div class="mb-2">
+                <label class="form-label">備註 <small class="text-muted">(最多500字)</small></label>
+                <textarea id="cfmRemark" class="form-control" rows="4" maxlength="500" placeholder="選填"></textarea>
+                <small class="text-muted"><span id="cfmRemarkCount">0</span> / 500</small>
+            </div>
+            <input type="hidden" id="cfmRawDetailJson">
+            <input type="hidden" id="cfmBillingPeriodText">
+            <div class="mt-3 d-flex gap-2">
+                <button id="btnConfirmSave" class="btn btn-success">確認儲存</button>
+                <button id="btnCancelConfirm" class="btn btn-outline-secondary">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 固定資訊 -->
+    <div class="card mb-3">
+        <div class="card-body py-2">
+            <div class="row">
+                <div class="col-md-5"><strong>用水地址：</strong>新北市汐止區福山街60巷12號四樓</div>
+                <div class="col-md-4"><strong>水號：</strong>K-22-020975-0</div>
+                <div class="col-md-3"><strong>水表號碼：</strong>C108015226</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 紀錄列表 -->
+    <div class="card">
+        <div class="card-header">水費紀錄列表 <span id="waterCount" class="badge bg-secondary ms-2">0</span></div>
+        <div class="card-body table-responsive">
+            <table class="table table-hover table-sm">
+                <thead>
+                    <tr>
+                        <th>計費期間</th>
+                        <th class="text-end">總用水度數</th>
+                        <th class="text-end">本期用水度數</th>
+                        <th class="text-end">本期指針</th>
+                        <th class="text-end">上期指針</th>
+                        <th class="text-end">應繳總金額</th>
+                        <th>備註</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="waterBody">
+                    <tr><td colspan="8" class="text-center text-muted">尚無資料</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 明細 Modal -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">水費帳單明細</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body" id="detailContent"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 修改 Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">修改水費紀錄</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" id="editId">
+                <div class="mb-2"><label class="form-label">計費起始日</label><input type="date" id="editStartDate" class="form-control"></div>
+                <div class="mb-2"><label class="form-label">計費結束日</label><input type="date" id="editEndDate" class="form-control"></div>
+                <div class="mb-2"><label class="form-label">計費天數</label><input type="number" id="editDays" class="form-control"></div>
+                <div class="mb-2"><label class="form-label">總用水度數</label><input type="number" id="editTotalUsage" class="form-control"></div>
+                <div class="mb-2"><label class="form-label">本期用水度數</label><input type="number" id="editCurrentUsage" class="form-control"></div>
+                <div class="mb-2"><label class="form-label">本期指針</label><input type="number" id="editCurrentReading" class="form-control"></div>
+                <div class="mb-2"><label class="form-label">上期指針</label><input type="number" id="editPreviousReading" class="form-control"></div>
+                <div class="mb-2"><label class="form-label">應繳總金額</label><input type="number" id="editAmount" class="form-control" step="0.01"></div>
+                <div class="mb-2">
+                    <label class="form-label">備註 <small class="text-muted">(最多500字)</small></label>
+                    <textarea id="editRemark" class="form-control" rows="4" maxlength="500"></textarea>
+                    <small class="text-muted"><span id="editRemarkCount">0</span> / 500</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" id="btnSaveEdit" class="btn btn-primary">儲存</button>
+            </div>
+        </div>
+    </div>
+</div>

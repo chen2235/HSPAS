@@ -32,6 +32,8 @@
         'health/checkup/qtr/dashboard': { html: '/pages/health-qtr-dashboard.html', js: ['/js/health-qtr-dashboard.js'] },
         'life/utility/electricity/period-records': { html: '/pages/elec-period-records.html', js: ['/js/elec-period-records.js'] },
         'life/utility/electricity/dashboard':      { html: '/pages/elec-dashboard.html',      js: ['/js/elec-dashboard.js'] },
+        'life/utility/water/period-records': { html: '/pages/water-period-records.html', js: ['/js/water-period-records.js'] },
+        'life/utility/water/dashboard':      { html: '/pages/water-dashboard.html',      js: ['/js/water-dashboard.js'] },
     };
 
     // RouteUrl → 路由 hash 的對應（DB 中的 RouteUrl 轉成前端 hash）
@@ -52,6 +54,8 @@
         '/health/checkup/qtr/dashboard': 'health/checkup/qtr/dashboard',
         '/life/utility/electricity/period-records': 'life/utility/electricity/period-records',
         '/life/utility/electricity/dashboard': 'life/utility/electricity/dashboard',
+        '/life/utility/water/period-records': 'life/utility/water/period-records',
+        '/life/utility/water/dashboard': 'life/utility/water/dashboard',
     };
 
     // FuncCode → Bootstrap Icon 對應

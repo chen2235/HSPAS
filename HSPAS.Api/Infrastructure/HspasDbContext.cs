@@ -17,6 +17,7 @@ public class HspasDbContext : DbContext
     public DbSet<QuarterHealthReport> QuarterHealthReports => Set<QuarterHealthReport>();
     public DbSet<QuarterHealthReportDetail> QuarterHealthReportDetails => Set<QuarterHealthReportDetail>();
     public DbSet<LifeElectricityBillPeriod> LifeElectricityBillPeriods => Set<LifeElectricityBillPeriod>();
+    public DbSet<LifeWaterBillPeriod> LifeWaterBillPeriods => Set<LifeWaterBillPeriod>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -95,5 +96,13 @@ public class HspasDbContext : DbContext
 
         modelBuilder.Entity<LifeElectricityBillPeriod>()
             .HasIndex(e => new { e.PowerNo, e.ReadOrDebitDate });
+
+        // LifeWaterBillPeriod
+        modelBuilder.Entity<LifeWaterBillPeriod>()
+            .Property(e => e.CreateTime)
+            .HasDefaultValueSql("SYSUTCDATETIME()");
+
+        modelBuilder.Entity<LifeWaterBillPeriod>()
+            .HasIndex(e => new { e.WaterNo, e.BillingEndDate });
     }
 }

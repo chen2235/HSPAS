@@ -23,6 +23,7 @@
 | 11.0 | 2026-03-09 | Bug fix：總市值計算改為每檔各自取最新收盤價（與明細一致）；損益顏色規則調整（藍=賺/紅=賠，三段式明細顏色）；WBS 新增生活計帳-每期水電費瓦斯紀錄（§17B, skill §18） |
 | 12.0 | 2026-03-09 | 完成「每期電費紀錄」模組：台電 PDF 帳單解析（PdfPig + 全形正規化 + 民國日期轉換）、CRUD API、每期紀錄前端、電費儀表板前端、重複上傳偵測（同電號+計費結束日更新）、LIFE_UTILITY 選單種子資料（§17B.1-17B.2） |
 | 13.0 | 2026-03-10 | 電費儀表板同期比較分析（YoY 雙年度疊加圖+比較明細表+合計列）、Sidebar 隱藏/顯示切換（含 localStorage 記憶）、備註欄位擴充至 500 字（textarea+字數計數+明細 Modal 可編輯備註+儀表板/比較表顯示備註）（§17B.2, §3B, §17B.1） |
+| 14.0 | 2026-03-11 | 完成「每期水費紀錄」模組：台水 PDF 帳單解析（PdfPig + NFKC 正規化解決 CJK 相容漢字 U+F963 度 + Letters API 逐行抽取 + 條碼水號解析）、CRUD API、每期紀錄前端（上傳→解析→確認→儲存）、水費儀表板前端（同期比較分析 YoY）、重複上傳偵測（同水號+計費結束日更新）（§17B.3） |
 
 ---
 
@@ -376,10 +377,29 @@
 - [x] 17.15b 同期比較圖表：Chart.js 雙年度疊加（實心柱狀=今年度數 vs 透明柱狀=去年度數，實線=今年金額 vs 虛線=去年金額），tooltip 顯示逐月 YoY%
 - [x] 17.15c 同期比較明細表：逐月對比（今年/去年 度數+金額 + 差異 + YoY%，紅/綠色標示）+ 合計列（`table-secondary fw-bold`，各年度總度數/總金額/總差異/總 YoY%）+ 備註欄（合併兩年備註，超過 30 字截斷+tooltip）
 
-#### 17B.3 每期水費紀錄 / 儀表板（預留）
+#### 17B.3 每期水費紀錄 / 儀表板
 
-- [ ] 17.16 每期水費紀錄 API 與前端 `/life/utility/water/period-records`（待補規格）
-- [ ] 17.17 每期水費儀表板前端 `/life/utility/water/dashboard`（待補規格）
+##### 17B.3a 每期水費紀錄
+
+- [x] 17.16 建立水費紀錄資料表 `Life_WaterBillPeriod`（14 欄位：WaterAddress, WaterNo, MeterNo, BillingStartDate/EndDate, BillingDays, BillingPeriodText, TotalUsage, CurrentUsage, CurrentMeterReading, PreviousMeterReading, TotalAmount, RawDetailJson, Remark, CreateTime, UpdateTime）
+- [x] 17.17 EF Core Entity `LifeWaterBillPeriod` + DbContext 配置（索引 WaterNo+BillingEndDate、CreateTime 預設 SYSUTCDATETIME()）+ Migration `AddLifeWaterBillPeriod`
+- [x] 17.18 後端 PDF 解析服務 `TaiwaterBillParserService`：UglyToad.PdfPig 解密（密碼 2gaijdrl）+ NFKC 正規化（解決 CJK 相容漢字 U+F963 度）+ 全形→半形轉換 + Letters API 逐行文字抽取 + Regex 抽取（水號從條碼字串 171101K220209750 解析為 K-22-020975-0、模糊 CJK 匹配 ExtractFieldIntFuzzy、費用明細含基本費/用水費/維護費/C退還負值）
+- [x] 17.19 `IWaterBillService` / `WaterBillService`：Save（重複偵測同水號+計費結束日自動更新）、GetList、GetById、Update、Delete、GetDashboard（依 BillingEndDate 分期，UsageTotal 用 TotalUsage??CurrentUsage fallback）
+- [x] 17.20 `POST /api/life/utility/water/upload` — 上傳台水 PDF 帳單解析 API
+- [x] 17.21 `POST /api/life/utility/water/save` — 確認儲存水費紀錄 API
+- [x] 17.22 `GET /api/life/utility/water/period-records` — 水費紀錄列表 API
+- [x] 17.23 `GET /api/life/utility/water/period-records/{id}` — 單筆水費紀錄明細 API
+- [x] 17.24 `PUT /api/life/utility/water/period-records/{id}` — 修改水費紀錄 API
+- [x] 17.25 `DELETE /api/life/utility/water/period-records/{id}` — 刪除水費紀錄 API
+- [x] 17.26 前端 `/life/utility/water/period-records` 頁面：PDF 上傳→解析→確認區塊（可修改所有欄位）、固定資訊列（用水地址/水號/水表號碼）、紀錄列表（明細 Modal / 修改 Modal / 刪除確認）、費用明細 JSON 展示、備註欄位（textarea 500 字+字數計數）
+
+##### 17B.3b 每期水費儀表板
+
+- [x] 17.27 `GET /api/life/utility/water/dashboard?year=` — 水費儀表板資料 API（依 BillingEndDate 年份篩選，回傳 periodIndex / periodLabel / usageTotal / amountTotal / remark）
+- [x] 17.28 前端 `/life/utility/water/dashboard` 頁面：年份篩選、年度摘要卡片（總用水/總金額/帳單筆數）、Chart.js 雙軸圖（柱狀=用水度數+折線=應繳金額）、期別明細表格（含備註欄）
+- [x] 17.29 同期比較分析：前端同時呼叫選定年+前一年 dashboard API（Promise.all），YoY 摘要卡片 ×4（用水量 YoY%、水費 YoY%、用水量差異、水費差異，紅=增加/綠=減少）
+- [x] 17.30 同期比較圖表：Chart.js 雙年度疊加（實心柱狀=今年度數 vs 透明柱狀=去年度數，實線=今年金額 vs 虛線=去年金額），tooltip 顯示逐期 YoY%
+- [x] 17.31 同期比較明細表：逐期對比（今年/去年 度數+金額 + 差異 + YoY%，紅/綠色標示）+ 合計列 + 備註欄
 
 #### 17B.4 每期瓦斯紀錄 / 儀表板（預留）
 
@@ -500,7 +520,9 @@ publish\
     │   ├── health-qtr-upload.js              ← 健檢報告上傳（OCR 辨識 + 手動輸入）
     │   ├── health-qtr-dashboard.js           ← 健檢報告儀表板（趨勢圖 + 比較）
     │   ├── elec-period-records.js            ← 每期電費紀錄（PDF 上傳 + CRUD）
-    │   └── elec-dashboard.js                 ← 電費儀表板（雙軸圖 + 月份表格）
+    │   ├── elec-dashboard.js                 ← 電費儀表板（雙軸圖 + 月份表格）
+    │   ├── water-period-records.js           ← 每期水費紀錄（PDF 上傳 + CRUD）
+    │   └── water-dashboard.js                ← 水費儀表板（雙軸圖 + 同期比較）
     └── pages\                                ← HTML 頁面片段
         ├── dashboard.html
         ├── calendar.html
@@ -517,7 +539,9 @@ publish\
         ├── health-qtr-upload.html            ← 健檢報告上傳頁面
         ├── health-qtr-dashboard.html         ← 健檢報告儀表板頁面
         ├── elec-period-records.html          ← 每期電費紀錄頁面
-        └── elec-dashboard.html               ← 電費儀表板頁面
+        ├── elec-dashboard.html               ← 電費儀表板頁面
+        ├── water-period-records.html         ← 每期水費紀錄頁面
+        └── water-dashboard.html              ← 水費儀表板頁面
 ```
 
 > **簡易做法**：直接將 `publish\` 資料夾內的所有內容完整複製到 IIS 網站目錄即可。
