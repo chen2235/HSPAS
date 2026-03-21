@@ -26,6 +26,7 @@ builder.Services.AddScoped<IQuarterHealthReportService, QuarterHealthReportServi
 builder.Services.AddScoped<IHealthReportOcrService, HealthReportOcrService>();
 builder.Services.AddScoped<IElectricityBillService, ElectricityBillService>();
 builder.Services.AddScoped<IWaterBillService, WaterBillService>();
+builder.Services.AddScoped<IUsPortfolioService, UsPortfolioService>();
 
 // --- Controllers & Swagger ---
 builder.Services.AddControllers();

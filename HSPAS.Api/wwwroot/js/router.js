@@ -34,6 +34,9 @@
         'life/utility/electricity/dashboard':      { html: '/pages/elec-dashboard.html',      js: ['/js/elec-dashboard.js'] },
         'life/utility/water/period-records': { html: '/pages/water-period-records.html', js: ['/js/water-period-records.js'] },
         'life/utility/water/dashboard':      { html: '/pages/water-dashboard.html',      js: ['/js/water-dashboard.js'] },
+        'us/dashboard': { html: '/pages/us-dashboard.html', js: ['/js/us-dashboard.js'] },
+        'us/trades':    { html: '/pages/us-trades.html',    js: ['/js/us-trades.js'] },
+        'us/pnl':       { html: '/pages/us-pnl.html',       js: ['/js/us-pnl.js'] },
     };
 
     // RouteUrl → 路由 hash 的對應（DB 中的 RouteUrl 轉成前端 hash）
@@ -56,6 +59,9 @@
         '/life/utility/electricity/dashboard': 'life/utility/electricity/dashboard',
         '/life/utility/water/period-records': 'life/utility/water/period-records',
         '/life/utility/water/dashboard': 'life/utility/water/dashboard',
+        '/us/dashboard': 'us/dashboard',
+        '/us/trades': 'us/trades',
+        '/us/pnl': 'us/pnl',
     };
 
     // FuncCode → Bootstrap Icon 對應
@@ -90,6 +96,10 @@
         'LIFE_UTILITY_WATER_DASH': 'bi-speedometer',
         'LIFE_UTILITY_GAS_PERIOD': 'bi-fire',
         'LIFE_UTILITY_GAS_DASH': 'bi-speedometer',
+        'US_STOCK': 'bi-globe-americas',
+        'US_STOCK_DASH': 'bi-speedometer2',
+        'US_STOCK_TRD': 'bi-receipt',
+        'US_STOCK_PNL': 'bi-calculator',
         'ADMIN_ROOT': 'bi-gear-wide-connected',
         'ADMIN_FUNC': 'bi-menu-button-wide',
         'ADMIN_MENU_SORT': 'bi-list-nested',

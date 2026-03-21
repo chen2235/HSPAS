@@ -24,6 +24,7 @@
 | 12.0 | 2026-03-09 | 完成「每期電費紀錄」模組：台電 PDF 帳單解析（PdfPig + 全形正規化 + 民國日期轉換）、CRUD API、每期紀錄前端、電費儀表板前端、重複上傳偵測（同電號+計費結束日更新）、LIFE_UTILITY 選單種子資料（§17B.1-17B.2） |
 | 13.0 | 2026-03-10 | 電費儀表板同期比較分析（YoY 雙年度疊加圖+比較明細表+合計列）、Sidebar 隱藏/顯示切換（含 localStorage 記憶）、備註欄位擴充至 500 字（textarea+字數計數+明細 Modal 可編輯備註+儀表板/比較表顯示備註）（§17B.2, §3B, §17B.1） |
 | 14.0 | 2026-03-11 | 完成「每期水費紀錄」模組：台水 PDF 帳單解析（PdfPig + NFKC 正規化解決 CJK 相容漢字 U+F963 度 + Letters API 逐行抽取 + 條碼水號解析）、CRUD API、每期紀錄前端（上傳→解析→確認→儲存）、水費儀表板前端（同期比較分析 YoY）、重複上傳偵測（同水號+計費結束日更新）（§17B.3） |
+| 15.0 | 2026-03-12 | 新增「美股投資」模組：US_TradeRecord 資料表（USD 幣別+匯率+交割日+零股支援 decimal(19,6)）、國泰證海外股票日對帳單 PDF 解析（UsCathayStatementParserService）、美股交易紀錄 CRUD+批次匯入 API、美股持股損益計算服務（UsPortfolioService）、美股交易紀錄管理前端、美股損益與成本查詢前端、美股儀表板前端（摘要卡片+圓餅圖+最近交易）、MenuFunction 種子資料 US_STOCK L2（§21） |
 
 ---
 
@@ -405,6 +406,65 @@
 
 - [ ] 17.18 每期瓦斯紀錄 API 與前端 `/life/utility/gas/period-records`（待補規格）
 - [ ] 17.19 每期瓦斯儀表板前端 `/life/utility/gas/dashboard`（待補規格）
+
+---
+
+## 21. 美股投資模組（skill §21）
+
+> Level 1: STOCK_ROOT → Level 2: US_STOCK → Level 3 功能頁
+
+### 21A. 資料庫設計
+
+- [x] 21.1 建立 `US_TradeRecord` 資料表（20 欄位：TradeDate, SettlementDate, StockSymbol, StockName, Market, Action, Currency, Quantity decimal(19,6), Price decimal(19,6), Amount, Fee, Tax, NetAmount, SettlementCurrency, ExchangeRate, NetAmountTwd, TradeRef, Note, CreateTime, UpdateTime）
+- [x] 21.2 EF Core Entity `UsTradeRecord` + DbContext 配置（索引 StockSymbol、TradeDate DESC）+ Migration `AddUsTradeRecord`
+- [x] 21.3 `MenuFunction` 種子資料 — 美股投資（US_STOCK L2 → US_STOCK_DASH / US_STOCK_TRD / US_STOCK_PNL 共 3 個 Level 3 功能）+ Migration `SeedUsStockMenu`
+
+### 21B. 美股交易紀錄管理
+
+#### 21B.1 後端 PDF 解析服務
+
+- [x] 21.4 `UsCathayStatementParserService`：UglyToad.PdfPig 解密 + 文字擷取 + 解析海外股票交易明細欄位（交易序號、商品代號/名稱、市場、交易種類、幣別、股數、價格、成交金額、手續費、稅費、應收付額、交割日、交割幣別、匯率、實際應收付額）
+- [x] 21.5 交易方向判斷：應收付額負值 → BUY、正值 → SELL
+- [x] 21.6 支援解析「小計 Subtotal」行驗證合計
+
+#### 21B.2 後端 API（`UsTradesController`）
+
+- [x] 21.7 `POST /api/us/trades` — 新增美股交易紀錄（自動計算 NetAmount）
+- [x] 21.8 `GET /api/us/trades` — 查詢美股交易紀錄（支援 symbol/from/to 篩選）
+- [x] 21.9 `PUT /api/us/trades/{id}` — 修改美股交易紀錄
+- [x] 21.10 `DELETE /api/us/trades/{id}` — 刪除美股交易紀錄
+- [x] 21.11 `POST /api/us/trades/cathay-statement/parse` — 上傳並解析國泰證美股日對帳單 PDF
+- [x] 21.12 `POST /api/us/trades/batch` — 批次新增多筆美股交易紀錄
+- [x] 21.13 `GET /api/us/trades/recent?count=10` — 最近 N 筆美股交易紀錄
+
+#### 21B.3 前端 — 美股交易紀錄管理 (`/us/trades`)
+
+- [x] 21.14 匯入國泰證美股日對帳單區塊：PDF 上傳+密碼+解析按鈕 → 待確認明細表格（含 USD/TWD 雙幣別顯示）→ 確認新增
+- [x] 21.15 手動新增交易表單：日期、代號、名稱、動作、幣別(USD)、股數(小數)、價格、手續費、稅費、備註、交割日(選填)、匯率(選填)
+- [x] 21.16 查詢結果表格（排序+編輯 Modal+刪除）
+
+### 21C. 美股損益與成本查詢
+
+#### 21C.1 後端服務
+
+- [x] 21.17 `IUsPortfolioService` / `UsPortfolioService`：持股計算（BUY+, SELL-）、平均成本、市值（最新交易價格）、未實現損益
+- [x] 21.18 `GET /api/us/portfolio/holdings` — 美股持股總覽 API
+- [x] 21.19 `GET /api/us/portfolio/stock/{symbol}/unrealized` — 單檔美股未實現損益 API
+- [x] 21.20 `GET /api/us/portfolio/unrealized-summary` — 整體美股未實現損益摘要 API
+
+#### 21C.2 前端 — 美股損益與成本查詢 (`/us/pnl`)
+
+- [x] 21.21 整體摘要列（總成本/總市值/未實現損益/報酬率，USD 幣別）
+- [x] 21.22 持股損益明細表格（9 欄可排序，報酬率顏色：≥100%藍/≤0%紅）
+
+### 21D. 美股股票儀表板
+
+#### 21D.1 前端 — 美股儀表板 (`/us/dashboard`)
+
+- [x] 21.23 摘要卡片列（總市值/總成本/未實現損益/報酬率，USD 幣別，損益顏色+邊框）
+- [x] 21.24 持股比例圓餅圖（Chart.js Doughnut）
+- [x] 21.25 持股明細表格（6 欄可排序，預設市值降序）
+- [x] 21.26 最近交易紀錄（最近 10 筆，BUY 紅/SELL 綠）
 
 ---
 

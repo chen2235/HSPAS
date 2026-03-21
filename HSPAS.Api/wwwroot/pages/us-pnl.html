@@ -1,0 +1,41 @@
+<h3>美股損益與成本查詢</h3>
+
+<div class="card mb-4">
+    <div class="card-header">整體美股投資組合摘要</div>
+    <div class="card-body">
+        <div class="row" id="usPnlSummary">
+            <div class="col-md-3"><strong>總成本(USD)：</strong><span id="usPnlTotalCost">--</span></div>
+            <div class="col-md-3"><strong>總市值(USD)：</strong><span id="usPnlTotalMV">--</span></div>
+            <div class="col-md-3"><strong>未實現損益：</strong><span id="usPnlTotalPnL">--</span></div>
+            <div class="col-md-3"><strong>報酬率：</strong><span id="usPnlTotalReturn">--</span></div>
+        </div>
+    </div>
+</div>
+
+<div id="usPnlMsg" class="mt-2"></div>
+
+<div id="usPnlLoading" class="text-center" style="display:none;">
+    <div class="spinner-border text-primary"></div> 載入中...
+</div>
+
+<div id="usHoldingsSection">
+    <h5>持股損益明細（<span id="usHoldingsCount">0</span> 檔）</h5>
+    <div class="table-container">
+        <table class="table table-sm table-striped table-hover">
+            <thead class="table-dark sticky-top">
+                <tr>
+                    <th class="sortable-uspnl" data-col="stockSymbol" style="cursor:pointer">代號</th>
+                    <th class="sortable-uspnl" data-col="stockName" style="cursor:pointer">名稱</th>
+                    <th class="sortable-uspnl" data-col="currentQty" style="cursor:pointer">持股</th>
+                    <th class="sortable-uspnl" data-col="avgCost" style="cursor:pointer">平均成本</th>
+                    <th class="sortable-uspnl" data-col="lastPrice" style="cursor:pointer">現價</th>
+                    <th class="sortable-uspnl" data-col="totalCost" style="cursor:pointer">總成本</th>
+                    <th class="sortable-uspnl" data-col="marketValue" style="cursor:pointer">市值</th>
+                    <th class="sortable-uspnl" data-col="unrealizedPnL" style="cursor:pointer">未實現損益</th>
+                    <th class="sortable-uspnl" data-col="unrealizedReturn" style="cursor:pointer">報酬率</th>
+                </tr>
+            </thead>
+            <tbody id="usHoldingsBody"><tr><td colspan="9" class="text-center text-muted">載入中...</td></tr></tbody>
+        </table>
+    </div>
+</div>

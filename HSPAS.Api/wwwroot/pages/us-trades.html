@@ -1,0 +1,243 @@
+<h3>美股交易紀錄管理</h3>
+
+<!-- 匯入國泰證美股日對帳單 -->
+<div class="card mb-4">
+    <div class="card-header"><i class="bi bi-file-earmark-pdf"></i> 匯入國泰證美股日對帳單</div>
+    <div class="card-body">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">選擇 PDF 檔案</label>
+                <input type="file" class="form-control" id="usPdfFile" accept=".pdf">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">對帳單密碼</label>
+                <input type="password" class="form-control" id="usPdfPassword" placeholder="預設：A120683373" value="A120683373">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-info w-100" id="btnParseUsPdf"><i class="bi bi-search"></i> 解析對帳單</button>
+            </div>
+        </div>
+        <small class="text-muted mt-1 d-block">支援「國泰證券」海外股票交易明細（客戶日買賣報告書）PDF 格式。應收/付金額：- 代表買入（BUY），+ 代表賣出（SELL）。</small>
+        <div id="usCathayMsg" class="mt-2"></div>
+    </div>
+</div>
+
+<!-- 待確認交易明細 -->
+<div id="usPendingSection" style="display:none;">
+    <div class="card mb-4">
+        <div class="card-header text-primary"><i class="bi bi-list-check"></i> 待確認交易明細（<span id="usPendingCount">0</span> 筆）</div>
+        <div class="card-body p-0">
+            <div class="table-container">
+                <table class="table table-sm table-striped table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>交易日期</th>
+                            <th>代號</th>
+                            <th>名稱</th>
+                            <th>市場</th>
+                            <th>交易別</th>
+                            <th>幣別</th>
+                            <th>股數</th>
+                            <th>價格</th>
+                            <th>成交金額</th>
+                            <th>手續費</th>
+                            <th>稅費</th>
+                            <th>應收付額(USD)</th>
+                            <th>交割日</th>
+                            <th>備註</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usPendingBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer text-end">
+            <button class="btn btn-secondary me-2" id="btnClearUsPending">清空</button>
+            <button class="btn btn-success" id="btnBatchCreateUs"><i class="bi bi-plus-circle"></i> 確認新增</button>
+        </div>
+    </div>
+</div>
+
+<!-- 手動新增交易表單 -->
+<div class="card mb-4">
+    <div class="card-header">手動新增美股交易</div>
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-md-2">
+                <label class="form-label">交易日期</label>
+                <input type="date" class="form-control" id="usTradeDate">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">股票代號</label>
+                <input type="text" class="form-control" id="usStockSymbol" placeholder="NVDA" style="text-transform:uppercase">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">股票名稱</label>
+                <input type="text" class="form-control" id="usStockName" placeholder="NVIDIA Corp">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">動作</label>
+                <select class="form-select" id="usAction">
+                    <option value="BUY">買進</option>
+                    <option value="SELL">賣出</option>
+                    <option value="DIVIDEND">股利</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">股數</label>
+                <input type="number" class="form-control" id="usQty" value="1" step="0.000001" min="0">
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">單價(USD)</label>
+                <input type="number" class="form-control" id="usPrice" step="0.01">
+            </div>
+        </div>
+        <div class="row g-2 mt-1">
+            <div class="col-md-2">
+                <label class="form-label">手續費(USD)</label>
+                <input type="number" class="form-control" id="usFee" step="0.01" value="0">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">稅費(USD)</label>
+                <input type="number" class="form-control" id="usTax" step="0.01" value="0">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">交割日期</label>
+                <input type="date" class="form-control" id="usSettlementDate">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">匯率</label>
+                <input type="number" class="form-control" id="usExchangeRate" step="0.0001" placeholder="選填">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">備註</label>
+                <input type="text" class="form-control" id="usNote">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button class="btn btn-success w-100" id="btnCreateUsTrade">新增</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 查詢 -->
+<div class="card mb-4">
+    <div class="card-header">查詢美股交易紀錄</div>
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-md-3">
+                <input type="text" class="form-control" id="usQuerySymbol" placeholder="股票代號（留空查全部）" style="text-transform:uppercase">
+            </div>
+            <div class="col-md-2">
+                <input type="date" class="form-control" id="usQueryFrom" title="起始日期">
+            </div>
+            <div class="col-md-2">
+                <input type="date" class="form-control" id="usQueryTo" title="結束日期">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary" id="btnQueryUsTrades">查詢</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="usTradesResult" style="display:none;">
+    <h5>查詢結果（<span id="usTradesCount"></span> 筆）</h5>
+    <div class="table-container">
+        <table class="table table-sm table-striped table-hover">
+            <thead class="table-dark sticky-top">
+                <tr>
+                    <th class="sortable-ustrade" data-col="id" style="cursor:pointer">編號</th>
+                    <th class="sortable-ustrade" data-col="tradeDate" style="cursor:pointer">日期</th>
+                    <th class="sortable-ustrade" data-col="stockSymbol" style="cursor:pointer">代號</th>
+                    <th class="sortable-ustrade" data-col="stockName" style="cursor:pointer">名稱</th>
+                    <th class="sortable-ustrade" data-col="action" style="cursor:pointer">動作</th>
+                    <th class="sortable-ustrade" data-col="quantity" style="cursor:pointer">股數</th>
+                    <th class="sortable-ustrade" data-col="price" style="cursor:pointer">價格</th>
+                    <th>手續費</th>
+                    <th>稅費</th>
+                    <th class="sortable-ustrade" data-col="netAmount" style="cursor:pointer">應收付(USD)</th>
+                    <th>交割日</th>
+                    <th>備註</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="usTradesBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 編輯 Modal -->
+<div class="modal fade" id="editUsTradeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">修改美股交易紀錄</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editUsId">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label">交易日期</label>
+                        <input type="date" class="form-control" id="editUsDate">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">動作</label>
+                        <select class="form-select" id="editUsAction">
+                            <option value="BUY">買進</option>
+                            <option value="SELL">賣出</option>
+                            <option value="DIVIDEND">股利</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row g-2 mt-2">
+                    <div class="col-6">
+                        <label class="form-label">代號</label>
+                        <input type="text" class="form-control" id="editUsSymbol" readonly>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">名稱</label>
+                        <input type="text" class="form-control" id="editUsName">
+                    </div>
+                </div>
+                <div class="row g-2 mt-2">
+                    <div class="col-4">
+                        <label class="form-label">股數</label>
+                        <input type="number" class="form-control" id="editUsQty" step="0.000001">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label">價格(USD)</label>
+                        <input type="number" class="form-control" id="editUsPrice" step="0.01">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label">手續費(USD)</label>
+                        <input type="number" class="form-control" id="editUsFee" step="0.01">
+                    </div>
+                </div>
+                <div class="row g-2 mt-2">
+                    <div class="col-4">
+                        <label class="form-label">稅費(USD)</label>
+                        <input type="number" class="form-control" id="editUsTax" step="0.01">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label">交割日期</label>
+                        <input type="date" class="form-control" id="editUsSettlement">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label">備註</label>
+                        <input type="text" class="form-control" id="editUsNote">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger me-auto" id="btnDeleteUsTrade">刪除此筆</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="btnSaveUsTrade">儲存修改</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="usTradeMsg" class="mt-2"></div>

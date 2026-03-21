@@ -612,6 +612,95 @@ namespace HSPAS.Api.Migrations
                     b.ToTable("TradeRecord");
                 });
 
+            modelBuilder.Entity("HSPAS.Api.Entities.UsTradeRecord", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(19,4)");
+
+                    b.Property<DateTime>("CreateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<decimal?>("ExchangeRate")
+                        .HasColumnType("decimal(19,4)");
+
+                    b.Property<decimal>("Fee")
+                        .HasColumnType("decimal(19,4)");
+
+                    b.Property<string>("Market")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<decimal>("NetAmount")
+                        .HasColumnType("decimal(19,4)");
+
+                    b.Property<decimal?>("NetAmountTwd")
+                        .HasColumnType("decimal(19,4)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(19,6)");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(19,6)");
+
+                    b.Property<string>("SettlementCurrency")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<DateTime?>("SettlementDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("StockName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("StockSymbol")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<decimal>("Tax")
+                        .HasColumnType("decimal(19,4)");
+
+                    b.Property<DateTime>("TradeDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("TradeRef")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StockSymbol");
+
+                    b.HasIndex("TradeDate");
+
+                    b.ToTable("US_TradeRecord");
+                });
+
             modelBuilder.Entity("HSPAS.Api.Entities.DcaExecution", b =>
                 {
                     b.HasOne("HSPAS.Api.Entities.DcaPlan", "Plan")
