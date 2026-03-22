@@ -68,7 +68,7 @@
 | GET | `/api/us/trades` | 查詢美股交易紀錄（支援 symbol/from/to 篩選） |
 | PUT | `/api/us/trades/{id}` | 修改美股交易紀錄 |
 | DELETE | `/api/us/trades/{id}` | 刪除美股交易紀錄 |
-| POST | `/api/us/trades/cathay-statement/parse` | 上傳並解析國泰證美股日對帳單 PDF |
+| POST | `/api/us/trades/cathay-statement/parse` | 上傳並解析國泰證美股日對帳單 PDF（上限 5 MB，僅接受 .pdf/.jpg/.png） |
 | POST | `/api/us/trades/batch` | 批次新增多筆美股交易紀錄 |
 
 ### 3.3 NetAmount 計算邏輯
@@ -85,7 +85,7 @@ DIVIDEND: NetAmount = +(Amount)
 
 ### 4.1 匯入國泰證美股日對帳單
 
-- 檔案選擇（.pdf）、密碼輸入框（預設 A120683373）、「解析對帳單」按鈕
+- 檔案選擇（.pdf / .jpg / .png，上限 5 MB）、密碼輸入框（預設 A120683373）、「解析對帳單」按鈕
 - 解析成功後顯示「待確認交易明細表格」：
   - 欄位：交易日期、代號、名稱、市場、交易別、幣別、股數、價格、成交金額、手續費、稅費、應收付額(USD)、交割日、匯率、應收付額(TWD)
   - 每列可移除、可編輯代號與備註

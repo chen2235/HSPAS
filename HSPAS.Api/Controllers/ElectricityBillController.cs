@@ -24,6 +24,14 @@ public class ElectricityBillController : ControllerBase
         if (file == null || file.Length == 0)
             return BadRequest(new { error = "請選擇 PDF 檔案" });
 
+        const long maxSize = 5 * 1024 * 1024; // 5 MB
+        if (file.Length > maxSize)
+            return BadRequest(new { error = "檔案大小不可超過 5 MB。" });
+
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (ext != ".pdf" && ext != ".jpg" && ext != ".jpeg" && ext != ".png")
+            return BadRequest(new { error = "僅支援 PDF / JPG / PNG 格式。" });
+
         var parser = new TaipowerBillParserService();
         using var stream = file.OpenReadStream();
         var result = parser.Parse(stream);

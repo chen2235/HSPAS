@@ -125,9 +125,12 @@ CREATE TABLE [dbo].[QuarterHealthReportDetail] (
 - Method: `POST /api/health/checkup/qtr/upload`
 - Content-Type: `multipart/form-data`
 - Request:
-    - `file`: 單一 JPG 或 PNG 檔
+    - `file`: 單一 PDF / JPG / PNG 檔（上限 5 MB）
     - `reportDate`（可選）：`YYYY-MM-DD`，若沒傳由系統或 AI 從報告上推測
     - `hospitalName`（可選）：預設 `廖內科`，可手動覆寫
+- 檔案驗證：
+    - 大小上限：5 MB，超過回傳 400
+    - 格式白名單：`.pdf`、`.jpg`、`.jpeg`、`.png`，不符回傳 400
 - Flow（邏輯說明給 Claude）：
 
 1. 儲存上傳檔案到指定路徑（例如 `/data/health/qtr/`）。

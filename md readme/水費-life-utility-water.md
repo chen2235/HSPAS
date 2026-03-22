@@ -248,8 +248,12 @@ GO
 ```http
 POST /api/life/utility/water/upload
 Content-Type: multipart/form-data
-Body: file = (水費 PDF 檔案)
+Body: file = (水費 PDF 檔案，上限 5 MB，僅接受 .pdf / .jpg / .jpeg / .png)
 ```
+
+檔案驗證：
+- 大小上限：5 MB，超過回傳 400。
+- 格式白名單：`.pdf`、`.jpg`、`.jpeg`、`.png`，不符回傳 400。
 
 流程：
 
